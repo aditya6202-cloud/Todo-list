@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Daynest — Dashboard</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Lora:ital,wght@0,500;1,400&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    .dashboard-wrapper { max-width: 720px; margin: 0 auto; padding: 0 16px 80px; }
+
+    .dash-header { display: flex; align-items: center; justify-content: space-between; padding: 24px 0 18px; }
+    .dash-greeting { font-size: 1.3rem; font-weight: 900; color: var(--text-dark); }
+    .dash-greeting span { color: var(--amber-deep); }
+    .dash-sub { font-size: 0.82rem; font-weight: 600; color: var(--text-soft); font-family: 'Lora', serif; font-style: italic; }
+
+    /* STAT CARDS */
+    .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
+    .stat-card {
+      background: var(--cream);
+      border-radius: var(--radius-lg);
+      padding: 18px 16px;
+      box-shadow: 0 4px 16px var(--shadow);
+      display: flex; flex-direction: column; gap: 6px;
+      transition: transform 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-3px); }
+    .stat-icon { font-size: 1.6rem; }
+    .stat-value { font-size: 1.8rem; font-weight: 900; color: var(--text-dark); line-height: 1; }
+    .stat-label { font-size: 0.75rem; font-weight: 700; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.6px; }
+    .stat-card.amber  { border-top: 4px solid var(--amber); }
+    .stat-card.rust   { border-top: 4px solid var(--rust); }
+    .stat-card.sage   { border-top: 4px solid var(--sage); }
+    .stat-card.brown  { border-top: 4px solid var(--brown-light); }
+
+    /* CHART CARDS */
+    .chart-card {
+      background: var(--cream);
+      border-radius: var(--radius-lg);
+      padding: 20px 18px;
+      box-shadow: 0 4px 16px var(--shadow);
+      margin-bottom: 16px;
+    }
+    .chart-title { font-size: 0.92rem; font-weight: 800; color: var(--text-dark); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .chart-wrap { position: relative; height: 200px; }
+
+    /* STREAK */
+    .streak-card {
+      background: linear-gradient(135deg, var(--amber), var(--amber-deep));
+      border-radius: var(--radius-lg);
+      padding: 20px 18px;
+      box-shadow: 0 6px 20px rgba(232,168,76,0.35);
+      margin-bottom: 16px;
+      display: flex; align-items: center; gap: 16px;
+      color: white;
+    }
+    .streak-flame { font-size: 2.8rem; }
+    .streak-info { flex: 1; }
+    .streak-count { font-size: 2rem; font-weight: 900; line-height: 1; }
+    .streak-label { font-size: 0.82rem; font-weight: 600; opacity: 0.85; }
+
+    /* RECENT */
+    .recent-list { display: flex; flex-direction: column; gap: 8px; }
+    .recent-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px;
+      background: var(--warm-bg);
+      border-radius: var(--radius-md);
+      font-size: 0.85rem; font-weight: 700; color: var(--text-dark);
+    }
+    .recent-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .recent-dot.high   { background: var(--rust); }
+    .recent-dot.medium { background: var(--amber); }
+    .recent-dot.low    { background: var(--sage); }
+    .recent-done { text-decoration: line-through; color: var(--text-soft); }
+    .recent-time { margin-left: auto; font-size: 0.72rem; color: var(--text-soft); font-weight: 600; }
+
+    /* NAV */
+    .dash-nav { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+    .dash-nav a {
+      padding: 8px 16px; background: var(--cream); border-radius: 20px;
+      font-size: 0.82rem; font-weight: 700; color: var(--text-mid);
+      text-decoration: none; box-shadow: 0 2px 8px var(--shadow);
+      transition: all 0.2s; cursor: pointer;
+    }
+    .dash-nav a:hover { background: var(--amber); color: white; }
+    .dash-nav a.active { background: var(--amber-deep); color: white; }
+  </style>
+</head>
+<body style="background: var(--warm-bg);">
+
+  <div id="sidebar-overlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-avatar" id="sidebar-avatar">👤</div>
+      <div class="sidebar-user-info">
+        <span class="sidebar-username" id="sidebar-username">Guest</span>
+        <span class="sidebar-email" id="sidebar-email">Local mode</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-link" onclick="window.location.href='app.html'"><span>📋</span> My Tasks</a>
+      <a class="sidebar-link active"><span>📊</span> Dashboard</a>
+      <a class="sidebar-link" onclick="window.location.href='timer.html'"><span>⏱️</span> Pomodoro</a>
+        <a class="sidebar-link" onclick="window.location.href='profile.html'"><span>👤</span> My Profile</a>
+      <a class="sidebar-link" onclick="closeSidebar(); showToast('Coming soon! 🌱')"><span>⚙️</span> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" onclick="handleLogout()">🚪 Logout</button>
+    </div>
+  </aside>
+
+  <div class="dashboard-wrapper">
+    <header class="app-header">
+      <div class="header-left">
+        <button class="btn-hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+        <h2 class="app-logo">Daynest</h2>
+      </div>
+      <div class="header-right">
+        <span class="header-date" id="header-date"></span>
+      </div>
+    </header>
+
+    <!-- Greeting -->
+    <div class="dash-header">
+      <div>
+        <div class="dash-greeting">Hey, <span id="dash-name">there</span>! 👋</div>
+        <div class="dash-sub">Here's your productivity overview</div>
+      </div>
+    </div>
+
+    <!-- Nav pills -->
+    <div class="dash-nav">
+      <a onclick="window.location.href='app.html'">📋 Tasks</a>
+      <a class="active">📊 Dashboard</a>
+      <a onclick="window.location.href='profile.html'">👤 Profile</a>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="stat-grid">
+      <div class="stat-card amber">
+        <span class="stat-icon">✅</span>
+        <span class="stat-value" id="stat-done">0</span>
+        <span class="stat-label">Tasks Done</span>
+      </div>
+      <div class="stat-card rust">
+        <span class="stat-icon">⏳</span>
+        <span class="stat-value" id="stat-pending">0</span>
+        <span class="stat-label">Pending</span>
+      </div>
+      <div class="stat-card sage">
+        <span class="stat-icon">🔴</span>
+        <span class="stat-value" id="stat-high">0</span>
+        <span class="stat-label">High Priority</span>
+      </div>
+      <div class="stat-card brown">
+        <span class="stat-icon">📈</span>
+        <span class="stat-value" id="stat-rate">0%</span>
+        <span class="stat-label">Completion Rate</span>
+      </div>
+    </div>
+
+    <!-- Streak -->
+    <div class="streak-card">
+      <div class="streak-flame">🔥</div>
+      <div class="streak-info">
+        <div class="streak-count" id="streak-count">0 days</div>
+        <div class="streak-label">Planning streak — keep it going!</div>
+      </div>
+    </div>
+
+    <!-- Priority Breakdown Chart -->
+    <div class="chart-card">
+      <div class="chart-title">🎯 Priority Breakdown</div>
+      <div class="chart-wrap">
+        <canvas id="priorityChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Weekly Progress Chart -->
+    <div class="chart-card">
+      <div class="chart-title">📅 Tasks Created This Week</div>
+      <div class="chart-wrap">
+        <canvas id="weeklyChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Recent Tasks -->
+    <div class="chart-card">
+      <div class="chart-title">🕐 Recent Tasks</div>
+      <div class="recent-list" id="recent-list">
+        <p style="color:var(--text-soft);font-size:0.85rem;text-align:center;padding:20px 0;">No tasks yet</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="toast"></div>
+  <script src="supabase.js"></script>
+  <script>
+    let tasks = [];
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      loadUserInfo();
+      setHeaderDate();
+      await loadTasks();
+      renderStats();
+      renderCharts();
+      renderRecent();
+    });
+
+    function setHeaderDate() {
+      const opts = { weekday: 'long', month: 'long', day: 'numeric' };
+      document.getElementById('header-date').textContent = new Date().toLocaleDateString(undefined, opts);
+    }
+
+    function loadUserInfo() {
+      const raw  = localStorage.getItem('dn_user');
+      const user = raw ? JSON.parse(raw) : { name: 'Guest', email: '', isGuest: true };
+      document.getElementById('sidebar-username').textContent = user.name || 'Guest';
+      document.getElementById('sidebar-email').textContent    = user.email || 'Local mode';
+      document.getElementById('sidebar-avatar').textContent   = user.isGuest ? '👤' : (user.name||'U').charAt(0).toUpperCase();
+      document.getElementById('dash-name').textContent        = user.name || 'there';
+    }
+
+    async function loadTasks() {
+      if (SupabaseDB.getUser()) {
+        try {
+          const rows = await SupabaseDB.loadAll();
+          if (rows) { tasks = rows; return; }
+        } catch(e) {}
+      }
+      const cached = localStorage.getItem('dn_tasks');
+      tasks = cached ? JSON.parse(cached) : [];
+    }
+
+    function renderStats() {
+      const done    = tasks.filter(t => t.done).length;
+      const pending = tasks.filter(t => !t.done).length;
+      const high    = tasks.filter(t => t.priority === 'high' && !t.done).length;
+      const rate    = tasks.length ? Math.round((done / tasks.length) * 100) : 0;
+
+      document.getElementById('stat-done').textContent    = done;
+      document.getElementById('stat-pending').textContent = pending;
+      document.getElementById('stat-high').textContent    = high;
+      document.getElementById('stat-rate').textContent    = rate + '%';
+
+      // Streak — count days since first task
+      const streak = Math.min(tasks.length, 7);
+      document.getElementById('streak-count').textContent = streak + (streak === 1 ? ' day' : ' days');
+    }
+
+    function renderCharts() {
+      // Priority donut
+      const high   = tasks.filter(t => t.priority === 'high').length;
+      const medium = tasks.filter(t => t.priority === 'medium').length;
+      const low    = tasks.filter(t => t.priority === 'low').length;
+
+      new Chart(document.getElementById('priorityChart'), {
+        type: 'doughnut',
+        data: {
+          labels: ['High', 'Medium', 'Low'],
+          datasets: [{
+            data: [high, medium, low],
+            backgroundColor: ['#E8624A', '#E8A84C', '#7A9E5F'],
+            borderWidth: 0,
+            hoverOffset: 6,
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { font: { family: 'Nunito', weight: '700', size: 12 }, padding: 16 } }
+          },
+          cutout: '65%',
+        }
+      });
+
+      // Weekly bar chart
+      const days  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      const today = new Date().getDay();
+      const labels = Array.from({length: 7}, (_, i) => days[(today - 6 + i + 7) % 7]);
+      const counts = Array(7).fill(0);
+
+      tasks.forEach(t => {
+        if (!t.created_at) return;
+        const d    = new Date(t.created_at);
+        const diff = Math.floor((Date.now() - d) / 86400000);
+        if (diff < 7) counts[6 - diff]++;
+      });
+
+      new Chart(document.getElementById('weeklyChart'), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Tasks',
+            data: counts,
+            backgroundColor: 'rgba(232,168,76,0.7)',
+            borderRadius: 8,
+            borderSkipped: false,
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1, font: { family: 'Nunito', weight: '700' } }, grid: { color: 'rgba(0,0,0,0.05)' } },
+            x: { ticks: { font: { family: 'Nunito', weight: '700' } }, grid: { display: false } }
+          }
+        }
+      });
+    }
+
+    function renderRecent() {
+      const list = document.getElementById('recent-list');
+      const recent = [...tasks].sort((a,b) => new Date(b.created_at||0) - new Date(a.created_at||0)).slice(0,5);
+      if (!recent.length) return;
+      list.innerHTML = recent.map(t => `
+        <div class="recent-item">
+          <div class="recent-dot ${t.priority}"></div>
+          <span class="${t.done ? 'recent-done' : ''}">${t.text}</span>
+          <span class="recent-time">${t.done ? '✅' : '⏳'}</span>
+        </div>
+      `).join('');
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebar-overlay').classList.toggle('active');
+    }
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebar-overlay').classList.remove('active');
+    }
+    function handleLogout() {
+      SupabaseDB.logout();
+      localStorage.removeItem('dn_user');
+      window.location.href = 'index.html';
+    }
+    let toastTimer;
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+    }
+    // ── Custom Categories ──────────────────────────────────────────
+let selectedCatEmoji = '📌';
+let customCategories = [];  // { name, emoji } objects
+
+// Load custom categories on page load — call this inside your DOMContentLoaded
+async function loadCustomCategories() {
+  const user = SupabaseDB.getUser();
+  if (user) {
+    try {
+      const rows = await SupabaseDB.getCategories();
+      customCategories = rows || [];
+    } catch(e) {
+      const saved = localStorage.getItem('dn_custom_cats');
+      customCategories = saved ? JSON.parse(saved) : [];
+    }
+  } else {
+    const saved = localStorage.getItem('dn_custom_cats');
+    customCategories = saved ? JSON.parse(saved) : [];
+  }
+  renderCustomChips();
+  updateCustomCatSelect();
+}
+
+function renderCustomChips() {
+  // Remove old custom chips first
+  document.querySelectorAll('.cat-chip-custom').forEach(el => el.remove());
+  const scroll  = document.getElementById('category-scroll');
+  const addBtn  = scroll.querySelector('.cat-chip-add');
+  customCategories.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'cat-chip cat-chip-custom';
+    btn.dataset.cat = cat.name;
+    btn.innerHTML = `${cat.emoji} ${cat.name} <span class="cat-count" id="cc-${cat.name}">0</span>`;
+    btn.onclick = () => setCategory(cat.name, btn);
+    scroll.insertBefore(btn, addBtn);
+  });
+  updateCatCounts();
+}
+
+function updateCustomCatSelect() {
+  const select = document.getElementById('cat-select');
+  // Remove previously injected custom options
+  select.querySelectorAll('[data-custom]').forEach(o => o.remove());
+  customCategories.forEach(cat => {
+    const opt = document.createElement('option');
+    opt.value = cat.name;
+    opt.textContent = `${cat.emoji} ${cat.name}`;
+    opt.dataset.custom = '1';
+    select.appendChild(opt);
+  });
+}
+
+function openCatModal() {
+  selectedCatEmoji = '📌';
+  document.getElementById('cat-modal-name').value = '';
+  document.querySelectorAll('.emoji-opt').forEach(e => e.classList.remove('selected'));
+  document.querySelector('.emoji-opt').classList.add('selected');
+  document.getElementById('cat-modal').classList.remove('hidden');
+  setTimeout(() => document.getElementById('cat-modal-name').focus(), 100);
+}
+
+function closeCatModal() {
+  document.getElementById('cat-modal').classList.add('hidden');
+}
+
+function pickEmoji(emoji, el) {
+  selectedCatEmoji = emoji;
+  document.querySelectorAll('.emoji-opt').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+async function saveCustomCategory() {
+  const name = document.getElementById('cat-modal-name').value.trim();
+  if (!name) { showToast('Please enter a category name ⚠️'); return; }
+
+  // Check duplicate
+  const allNames = ['Work','Personal','Health','Study','Shopping','Finance','Home',
+    ...customCategories.map(c => c.name.toLowerCase())];
+  if (allNames.includes(name.toLowerCase())) {
+    showToast('Category already exists ⚠️'); return;
+  }
+
+  const newCat = { name, emoji: selectedCatEmoji };
+
+  // Save to Supabase
+  const user = SupabaseDB.getUser();
+  if (user) {
+    try { await SupabaseDB.insertCategory(newCat); }
+    catch(e) { console.log('Cat save error:', e.message); }
+  }
+
+  // Save locally too
+  customCategories.push(newCat);
+  localStorage.setItem('dn_custom_cats', JSON.stringify(customCategories));
+
+  renderCustomChips();
+  updateCustomCatSelect();
+  closeCatModal();
+  showToast(`Category "${name}" added! ${selectedCatEmoji}`);
+}
+  </script>
+</body>
+</html>

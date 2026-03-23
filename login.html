@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Daynest — Login</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Lora:ital,wght@0,500;1,400&display=swap" rel="stylesheet"/>
+</head>
+<body>
+  <div class="auth-screen">
+    <div class="auth-bg-deco">
+      <div class="deco-circle c1"></div>
+      <div class="deco-circle c2"></div>
+    </div>
+    <div class="auth-card">
+      <button class="btn-back" onclick="window.location.href='index.html'">← Back</button>
+      <div class="auth-icon">🔑</div>
+      <h2 class="auth-title">Welcome Back</h2>
+      <p class="auth-subtitle"><em>Log in to your Daynest account</em></p>
+
+      <label class="auth-label">Email</label>
+      <input type="email" id="login-email" class="auth-input" placeholder="you@email.com"/>
+
+      <label class="auth-label">Password</label>
+      <div class="password-wrap">
+        <input type="password" id="login-password" class="auth-input" placeholder="Your password"/>
+        <button class="btn-eye" onclick="togglePass('login-password', this)">👁</button>
+      </div>
+
+      <button class="btn-auth" id="login-btn" onclick="handleLogin()">Login ✦</button>
+
+      <p style="text-align:right;margin-top:6px;"><span onclick="window.location.href='forgot-password.html'" style="font-size:0.8rem;color:var(--amber-deep);font-weight:700;cursor:pointer;">Forgot password?</span></p>
+      <p class="auth-switch">Don't have an account?
+        <span onclick="window.location.href='signup.html'">Sign Up</span>
+      </p>
+      <div id="login-error" class="auth-error hidden"></div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+  <script src="supabase.js"></script>
+  <script>
+    async function handleLogin() {
+      const email    = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      const errEl    = document.getElementById('login-error');
+      const btn      = document.getElementById('login-btn');
+
+      if (!email || !password) { showError('Please fill in all fields ⚠️'); return; }
+
+      btn.textContent = 'Logging in…';
+      btn.disabled = true;
+
+      try {
+        const user = await SupabaseDB.login(email, password);
+        localStorage.setItem('dn_user', JSON.stringify({
+          name: user.email.split('@')[0],
+          email: user.email,
+          isGuest: false
+        }));
+        window.location.href = 'app.html';
+      } catch (e) {
+        showError(e.message || 'Login failed. Check your credentials.');
+        btn.textContent = 'Login ✦';
+        btn.disabled = false;
+      }
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('login-error');
+      el.textContent = msg;
+      el.classList.remove('hidden');
+      setTimeout(() => el.classList.add('hidden'), 4000);
+    }
+
+    function togglePass(id, btn) {
+      const input = document.getElementById(id);
+      input.type = input.type === 'password' ? 'text' : 'password';
+      btn.textContent = input.type === 'password' ? '👁' : '🙈';
+    }
+
+    // Enter key support
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') handleLogin();
+    });
+
+    let toastTimer;
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+    }
+  </script>
+</body>
+</html>

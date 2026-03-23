@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Daynest — My Tasks</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Lora:ital,wght@0,500;1,400&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    /* ── LAYOUT ── */
+    .main-layout { display: flex; min-height: 100vh; }
+    .content-area { flex: 1; padding: 0 18px 80px; max-width: 780px; margin: 0 auto; width: 100%; }
+
+    /* ── MINI DASHBOARD STRIP ── */
+    .mini-dash { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 18px; }
+    .mini-card {
+      background: var(--cream); border-radius: var(--radius-md);
+      padding: 14px 12px; text-align: center;
+      box-shadow: 0 3px 12px var(--shadow);
+      cursor: pointer; transition: all 0.25s;
+      border-bottom: 3px solid transparent;
+    }
+    .mini-card:hover { transform: translateY(-3px); box-shadow: 0 6px 18px var(--shadow-deep); }
+    .mini-card.c-amber { border-bottom-color: var(--amber-deep); }
+    .mini-card.c-rust  { border-bottom-color: var(--rust); }
+    .mini-card.c-sage  { border-bottom-color: var(--sage); }
+    .mini-card.c-brown { border-bottom-color: var(--brown-light); }
+    .mini-card-val   { font-size: 1.5rem; font-weight: 900; color: var(--text-dark); line-height: 1; }
+    .mini-card-label { font-size: 0.65rem; font-weight: 700; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+    .mini-card-icon  { font-size: 1.1rem; margin-bottom: 4px; }
+
+    /* ── CATEGORY TABS ── */
+    .category-section { margin-bottom: 16px; }
+    .category-label { font-size: 0.75rem; font-weight: 800; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+    .category-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
+    .category-scroll::-webkit-scrollbar { display: none; }
+
+    .cat-chip {
+      display: flex; align-items: center; gap: 6px;
+      padding: 9px 14px; border-radius: 20px;
+      border: 2px solid transparent;
+      font-family: 'Nunito', sans-serif; font-size: 0.82rem; font-weight: 800;
+      cursor: pointer; white-space: nowrap; transition: all 0.2s; flex-shrink: 0;
+    }
+    .cat-chip .cat-count {
+      background: rgba(0,0,0,0.12); border-radius: 10px;
+      padding: 1px 7px; font-size: 0.7rem; font-weight: 900;
+    }
+    .cat-chip.active { color: white !important; border-color: transparent !important; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+
+    /* Built-in category colors */
+    .cat-all      { background: var(--cream); color: var(--text-mid); border-color: var(--sand); }
+    .cat-all.active { background: var(--amber-deep); }
+    .cat-work     { background: rgba(99,102,241,0.1); color: #6366F1; border-color: rgba(99,102,241,0.3); }
+    .cat-work.active { background: #6366F1; }
+    .cat-personal { background: rgba(232,168,76,0.12); color: var(--amber-deep); border-color: rgba(232,168,76,0.3); }
+    .cat-personal.active { background: var(--amber-deep); }
+    .cat-health   { background: rgba(122,158,95,0.12); color: var(--sage); border-color: rgba(122,158,95,0.3); }
+    .cat-health.active { background: var(--sage); }
+    .cat-study    { background: rgba(232,98,74,0.1); color: var(--rust); border-color: rgba(232,98,74,0.3); }
+    .cat-study.active { background: var(--rust); }
+    .cat-shopping { background: rgba(236,72,153,0.1); color: #EC4899; border-color: rgba(236,72,153,0.3); }
+    .cat-shopping.active { background: #EC4899; }
+    .cat-finance  { background: rgba(16,185,129,0.1); color: #10B981; border-color: rgba(16,185,129,0.3); }
+    .cat-finance.active { background: #10B981; }
+    .cat-home     { background: rgba(245,158,11,0.1); color: #D97706; border-color: rgba(245,158,11,0.3); }
+    .cat-home.active { background: #D97706; }
+
+    /* Custom user category chips */
+    .cat-chip-custom { background: rgba(160,114,74,0.1); color: var(--brown-light); border-color: rgba(160,114,74,0.3); }
+    .cat-chip-custom.active { background: var(--brown-light); color: white; }
+
+    /* + Add category button */
+    .cat-chip-add {
+      display: flex; align-items: center; gap: 5px;
+      padding: 9px 14px; border-radius: 20px;
+      border: 2px dashed var(--sand);
+      background: transparent;
+      font-family: 'Nunito', sans-serif; font-size: 0.82rem; font-weight: 800;
+      color: var(--text-soft); cursor: pointer; white-space: nowrap;
+      transition: all 0.2s; flex-shrink: 0;
+    }
+    .cat-chip-add:hover { border-color: var(--amber); color: var(--amber-deep); background: rgba(232,168,76,0.08); }
+
+    /* ── ADD CATEGORY MODAL ── */
+    .cat-modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.38);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 300; padding: 20px;
+    }
+    .cat-modal-overlay.hidden { display: none; }
+    .cat-modal-card {
+      background: var(--cream); border-radius: var(--radius-lg);
+      padding: 24px 22px; width: 100%; max-width: 340px;
+      box-shadow: 0 12px 40px rgba(100,60,20,0.28);
+      animation: taskSlideIn 0.2s ease both;
+    }
+    .cat-modal-title { font-size: 1rem; font-weight: 900; color: var(--text-dark); margin-bottom: 16px; }
+    .cat-modal-label {
+      font-size: 0.73rem; font-weight: 800; color: var(--text-mid);
+      text-transform: uppercase; letter-spacing: 0.5px;
+      display: block; margin-bottom: 6px;
+    }
+    .cat-modal-input {
+      width: 100%; padding: 10px 13px; margin-bottom: 14px;
+      background: var(--warm-bg); border: 2px solid transparent;
+      border-radius: var(--radius-sm); font-family: 'Nunito', sans-serif;
+      font-size: 0.92rem; font-weight: 600; color: var(--text-dark);
+      outline: none; transition: border-color 0.2s; box-sizing: border-box;
+    }
+    .cat-modal-input:focus { border-color: var(--amber); }
+    .emoji-picker { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+    .emoji-opt {
+      width: 38px; height: 38px; border-radius: 10px;
+      background: var(--warm-bg); border: 2px solid transparent;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.15rem; cursor: pointer; transition: all 0.15s;
+    }
+    .emoji-opt:hover, .emoji-opt.selected { border-color: var(--amber); background: rgba(232,168,76,0.15); transform: scale(1.1); }
+    .cat-modal-actions { display: flex; gap: 10px; }
+    .btn-cat-cancel {
+      flex: 1; padding: 11px; background: var(--warm-bg);
+      border: none; border-radius: var(--radius-sm);
+      font-family: 'Nunito', sans-serif; font-size: 0.88rem; font-weight: 800;
+      color: var(--text-mid); cursor: pointer; transition: background 0.2s;
+    }
+    .btn-cat-cancel:hover { background: var(--sand); }
+    .btn-cat-save {
+      flex: 1; padding: 11px; background: var(--amber-deep); color: white;
+      border: none; border-radius: var(--radius-sm);
+      font-family: 'Nunito', sans-serif; font-size: 0.88rem; font-weight: 800;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .btn-cat-save:hover { background: var(--brown); }
+
+    /* ── KANBAN VIEW ── */
+    .view-toggle { display: flex; gap: 6px; margin-bottom: 14px; }
+    .btn-view {
+      padding: 7px 14px; background: var(--cream);
+      border: 2px solid var(--sand); border-radius: var(--radius-sm);
+      font-family: 'Nunito', sans-serif; font-size: 0.8rem; font-weight: 800;
+      color: var(--text-mid); cursor: pointer; transition: all 0.2s;
+    }
+    .btn-view.active { background: var(--amber-deep); color: white; border-color: var(--amber-deep); }
+    #list-view { display: block; }
+    #kanban-view { display: none; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 16px; }
+    #kanban-view.visible { display: grid; }
+    .kanban-col { background: var(--cream); border-radius: var(--radius-lg); padding: 14px 12px; box-shadow: 0 4px 14px var(--shadow); min-height: 200px; }
+    .kanban-col-header { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--sand); }
+    .kanban-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .kanban-task { background: var(--warm-bg); border-radius: var(--radius-sm); padding: 10px; margin-bottom: 8px; font-size: 0.82rem; font-weight: 700; color: var(--text-dark); border-left: 3px solid var(--sand); transition: all 0.2s; cursor: pointer; }
+    .kanban-task:hover { transform: translateY(-2px); box-shadow: 0 4px 10px var(--shadow); }
+    .kanban-task.high   { border-left-color: var(--rust); }
+    .kanban-task.medium { border-left-color: var(--amber); }
+    .kanban-task.low    { border-left-color: var(--sage); }
+    .kanban-cat-badge { font-size: 0.65rem; font-weight: 800; margin-top: 5px; opacity: 0.7; }
+
+    /* ── ADD TASK ── */
+    .add-task-card { background: var(--cream); border-radius: var(--radius-lg); padding: 16px 18px; box-shadow: 0 4px 16px var(--shadow); margin-bottom: 16px; }
+    .add-row-1 { display: flex; gap: 10px; margin-bottom: 10px; }
+    .add-row-2 { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .task-text-input { flex: 1; padding: 11px 14px; background: var(--warm-bg); border: 2px solid transparent; border-radius: var(--radius-sm); font-family: 'Nunito', sans-serif; font-size: 0.95rem; font-weight: 600; color: var(--text-dark); outline: none; transition: border-color 0.2s; }
+    .task-text-input:focus { border-color: var(--amber); }
+    .task-text-input::placeholder { color: var(--text-soft); }
+    .priority-select, .due-date-input, .cat-select { padding: 8px 10px; background: var(--warm-bg); border: 2px solid transparent; border-radius: var(--radius-sm); font-family: 'Nunito', sans-serif; font-size: 0.82rem; font-weight: 700; color: var(--text-mid); cursor: pointer; outline: none; transition: border-color 0.2s; flex: 1; min-width: 100px; }
+    .priority-select:focus, .due-date-input:focus, .cat-select:focus { border-color: var(--amber); }
+    .btn-add { padding: 9px 22px; background: var(--amber-deep); color: white; border: none; border-radius: var(--radius-sm); font-family: 'Nunito', sans-serif; font-size: 0.9rem; font-weight: 800; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(200,121,58,0.3); flex-shrink: 0; }
+    .btn-add:hover { background: var(--brown); transform: translateY(-2px); }
+
+    /* ── TASK ITEM ── */
+    .task-item { display: flex; align-items: center; gap: 12px; padding: 13px 14px; background: var(--warm-bg); border-radius: var(--radius-md); border-left: 4px solid transparent; box-shadow: 0 2px 8px var(--shadow); transition: all 0.3s; animation: taskSlideIn 0.3s ease both; margin-bottom: 8px; }
+    .task-item:hover { box-shadow: 0 4px 16px var(--shadow-deep); transform: translateX(2px); }
+    .task-item[data-priority="high"]   { border-left-color: var(--priority-high); }
+    .task-item[data-priority="medium"] { border-left-color: var(--priority-medium); }
+    .task-item[data-priority="low"]    { border-left-color: var(--priority-low); }
+    .task-item.done { opacity: 0.55; }
+    .task-check { width: 22px; height: 22px; border: 2.5px solid var(--sand); border-radius: 7px; flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; background: var(--cream); transition: all 0.2s; font-size: 0.85rem; }
+    .task-check:hover { border-color: var(--amber); }
+    .task-check.checked { background: var(--amber); border-color: var(--amber-deep); color: white; }
+    .task-body { flex: 1; min-width: 0; }
+    .task-text { font-size: 0.92rem; font-weight: 700; color: var(--text-dark); line-height: 1.3; transition: all 0.3s; }
+    .task-item.done .task-text { text-decoration: line-through; color: var(--text-soft); }
+    .task-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
+    .priority-badge { font-size: 0.65rem; font-weight: 800; padding: 2px 7px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .priority-badge.high   { background: rgba(232,98,74,0.15); color: var(--rust); }
+    .priority-badge.medium { background: rgba(232,168,76,0.2); color: var(--amber-deep); }
+    .priority-badge.low    { background: rgba(122,158,95,0.15); color: var(--sage); }
+    .cat-badge { font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 10px; }
+    .task-due { font-size: 0.7rem; font-weight: 600; color: var(--text-soft); }
+    .task-due.overdue { color: var(--rust); }
+    .task-delete { background: none; border: none; cursor: pointer; font-size: 1rem; color: var(--text-soft); padding: 4px; border-radius: 6px; opacity: 0; transition: all 0.2s; flex-shrink: 0; }
+    .task-item:hover .task-delete { opacity: 1; }
+    .task-delete:hover { color: var(--rust); background: rgba(232,98,74,0.1); }
+
+    /* ── CHART MINI ── */
+    .mini-chart-card { background: var(--cream); border-radius: var(--radius-lg); padding: 16px 18px; box-shadow: 0 4px 16px var(--shadow); margin-bottom: 16px; }
+    .mini-chart-title { font-size: 0.85rem; font-weight: 800; color: var(--text-dark); margin-bottom: 12px; }
+    .mini-chart-wrap { height: 120px; position: relative; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      .mini-dash { grid-template-columns: repeat(2,1fr); }
+      #kanban-view { grid-template-columns: 1fr; }
+      .add-row-2 { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body style="background: var(--warm-bg);">
+
+  <div id="sidebar-overlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-avatar" id="sidebar-avatar">👤</div>
+      <div class="sidebar-user-info">
+        <span class="sidebar-username" id="sidebar-username">Guest</span>
+        <span class="sidebar-email" id="sidebar-email">Local mode</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-link active"><span>📋</span> My Tasks</a>
+      <a class="sidebar-link" onclick="window.location.href='dashboard.html'"><span>📊</span> Dashboard</a>
+      <a class="sidebar-link" onclick="window.location.href='timer.html'"><span>⏱️</span> Pomodoro</a>
+      <a class="sidebar-link" onclick="window.location.href='profile.html'"><span>👤</span> My Profile</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="supabase-status sidebar-db" id="supabase-status" onclick="openModal()">
+        <span class="status-dot connected"></span>
+        <span class="status-text">Live ✦</span>
+      </div>
+      <button class="btn-logout" id="btn-logout" onclick="handleLogout()">🚪 Logout</button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="content-area">
+    <header class="app-header">
+      <div class="header-left">
+        <button class="btn-hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+        <h2 class="app-logo">Daynest</h2>
+      </div>
+      <div class="header-right">
+        <span class="header-date" id="header-date"></span>
+      </div>
+    </header>
+
+    <!-- MINI DASHBOARD STRIP -->
+    <div class="mini-dash">
+      <div class="mini-card c-amber" onclick="setFilter('all',document.querySelector('[data-filter=all]'))">
+        <div class="mini-card-icon">📋</div>
+        <div class="mini-card-val" id="md-total">0</div>
+        <div class="mini-card-label">Total</div>
+      </div>
+      <div class="mini-card c-sage" onclick="setFilter('done',document.querySelector('[data-filter=done]'))">
+        <div class="mini-card-icon">✅</div>
+        <div class="mini-card-val" id="md-done">0</div>
+        <div class="mini-card-label">Done</div>
+      </div>
+      <div class="mini-card c-rust" onclick="setFilter('high',document.querySelector('[data-filter=high]'))">
+        <div class="mini-card-icon">🔴</div>
+        <div class="mini-card-val" id="md-high">0</div>
+        <div class="mini-card-label">High</div>
+      </div>
+      <div class="mini-card c-brown">
+        <div class="mini-card-icon">📈</div>
+        <div class="mini-card-val" id="md-rate">0%</div>
+        <div class="mini-card-label">Rate</div>
+      </div>
+    </div>
+
+    <!-- PROGRESS BAR -->
+    <section class="progress-section" style="margin-bottom:16px;">
+      <div class="progress-info">
+        <span class="progress-label">Today's Progress</span>
+        <span class="progress-count" id="progress-count">0 / 0 done</span>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progress-bar"></div>
+      </div>
+      <div class="progress-emoji" id="progress-emoji">🌱</div>
+    </section>
+
+    <!-- MINI CHART -->
+    <div class="mini-chart-card">
+      <div class="mini-chart-title">📊 Priority Breakdown</div>
+      <div class="mini-chart-wrap">
+        <canvas id="miniChart"></canvas>
+      </div>
+    </div>
+
+    <!-- CATEGORY CHIPS -->
+    <div class="category-section">
+      <div class="category-label">📁 Categories</div>
+      <div class="category-scroll" id="category-scroll">
+        <button class="cat-chip cat-all active" data-cat="all" onclick="setCategory('all',this)">
+          🗂️ All <span class="cat-count" id="cc-all">0</span>
+        </button>
+        <button class="cat-chip cat-work" data-cat="Work" onclick="setCategory('Work',this)">
+          💼 Work <span class="cat-count" id="cc-Work">0</span>
+        </button>
+        <button class="cat-chip cat-personal" data-cat="Personal" onclick="setCategory('Personal',this)">
+          🌟 Personal <span class="cat-count" id="cc-Personal">0</span>
+        </button>
+        <button class="cat-chip cat-health" data-cat="Health" onclick="setCategory('Health',this)">
+          💪 Health <span class="cat-count" id="cc-Health">0</span>
+        </button>
+        <button class="cat-chip cat-study" data-cat="Study" onclick="setCategory('Study',this)">
+          📚 Study <span class="cat-count" id="cc-Study">0</span>
+        </button>
+        <button class="cat-chip cat-shopping" data-cat="Shopping" onclick="setCategory('Shopping',this)">
+          🛒 Shopping <span class="cat-count" id="cc-Shopping">0</span>
+        </button>
+        <button class="cat-chip cat-finance" data-cat="Finance" onclick="setCategory('Finance',this)">
+          💰 Finance <span class="cat-count" id="cc-Finance">0</span>
+        </button>
+        <button class="cat-chip cat-home" data-cat="Home" onclick="setCategory('Home',this)">
+          🏠 Home <span class="cat-count" id="cc-Home">0</span>
+        </button>
+        <!-- custom chips injected here by JS -->
+        <button class="cat-chip-add" onclick="openCatModal()">＋ Add</button>
+      </div>
+    </div>
+
+    <!-- VIEW TOGGLE + SEARCH -->
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
+      <div class="view-toggle">
+        <button class="btn-view active" id="btn-list-view" onclick="switchView('list')">☰ List</button>
+        <button class="btn-view" id="btn-kanban-view" onclick="switchView('kanban')">⊞ Board</button>
+      </div>
+      <div class="search-wrap" style="flex:1;min-width:160px;">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-input" class="search-input" placeholder="Search tasks..." oninput="filterTasks()"/>
+      </div>
+    </div>
+
+    <!-- FILTER PILLS -->
+    <div class="filter-pills" style="margin-bottom:14px;">
+      <button class="pill active" data-filter="all"    onclick="setFilter('all',this)">All</button>
+      <button class="pill" data-filter="high"          onclick="setFilter('high',this)">🔴 High</button>
+      <button class="pill" data-filter="medium"        onclick="setFilter('medium',this)">🟡 Medium</button>
+      <button class="pill" data-filter="low"           onclick="setFilter('low',this)">🟢 Low</button>
+      <button class="pill" data-filter="done"          onclick="setFilter('done',this)">✅ Done</button>
+    </div>
+
+    <!-- ADD TASK -->
+    <div class="add-task-card">
+      <div class="add-row-1">
+        <input type="text" id="new-task-input" class="task-text-input" placeholder="Add a new task..."/>
+        <button class="btn-add" onclick="addTask()">+ Add</button>
+      </div>
+      <div class="add-row-2">
+        <select id="priority-select" class="priority-select">
+          <option value="medium">🟡 Medium</option>
+          <option value="high">🔴 High</option>
+          <option value="low">🟢 Low</option>
+        </select>
+        <select id="cat-select" class="cat-select">
+          <option value="Personal">🌟 Personal</option>
+          <option value="Work">💼 Work</option>
+          <option value="Health">💪 Health</option>
+          <option value="Study">📚 Study</option>
+          <option value="Shopping">🛒 Shopping</option>
+          <option value="Finance">💰 Finance</option>
+          <option value="Home">🏠 Home</option>
+        </select>
+        <input type="date" id="due-date-input" class="due-date-input"/>
+      </div>
+    </div>
+
+    <!-- LIST VIEW -->
+    <div id="list-view">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <h3 class="tasks-title">To Do</h3>
+        <button class="btn-clear-done" onclick="clearDone()">Clear done</button>
+      </div>
+      <div id="task-list" class="task-list"></div>
+      <div id="empty-state" class="empty-state hidden">
+        <div class="cat-mascot">
+          <svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="60" cy="70" rx="32" ry="22" fill="#E8A84C"/>
+            <circle cx="60" cy="45" r="22" fill="#E8A84C"/>
+            <polygon points="42,30 36,12 52,25" fill="#E8A84C"/>
+            <polygon points="78,30 84,12 68,25" fill="#E8A84C"/>
+            <polygon points="44,28 39,16 51,25" fill="#F5C97A"/>
+            <polygon points="76,28 81,16 69,25" fill="#F5C97A"/>
+            <ellipse cx="52" cy="43" rx="5" ry="6" fill="#4A3020"/>
+            <ellipse cx="68" cy="43" rx="5" ry="6" fill="#4A3020"/>
+            <circle cx="53" cy="41" r="2" fill="white"/>
+            <circle cx="69" cy="41" r="2" fill="white"/>
+            <ellipse cx="60" cy="51" rx="3" ry="2" fill="#E8624A"/>
+            <line x1="63" y1="51" x2="82" y2="47" stroke="#A0724A" stroke-width="1.5"/>
+            <line x1="63" y1="53" x2="82" y2="55" stroke="#A0724A" stroke-width="1.5"/>
+            <line x1="57" y1="51" x2="38" y2="47" stroke="#A0724A" stroke-width="1.5"/>
+            <line x1="57" y1="53" x2="38" y2="55" stroke="#A0724A" stroke-width="1.5"/>
+            <ellipse cx="88" cy="60" rx="8" ry="6" fill="#E8A84C"/>
+            <circle cx="84" cy="56" r="3" fill="#F5C97A"/>
+            <circle cx="90" cy="55" r="3" fill="#F5C97A"/>
+            <circle cx="94" cy="59" r="3" fill="#F5C97A"/>
+          </svg>
+        </div>
+        <p class="empty-text">No tasks here! Add one above 🐾</p>
+      </div>
+    </div>
+
+    <!-- KANBAN VIEW -->
+    <div id="kanban-view">
+      <div class="kanban-col">
+        <div class="kanban-col-header"><div class="kanban-dot" style="background:var(--rust)"></div> High Priority</div>
+        <div id="kb-high"></div>
+      </div>
+      <div class="kanban-col">
+        <div class="kanban-col-header"><div class="kanban-dot" style="background:var(--amber)"></div> Medium</div>
+        <div id="kb-medium"></div>
+      </div>
+      <div class="kanban-col">
+        <div class="kanban-col-header"><div class="kanban-dot" style="background:var(--sage)"></div> Low Priority</div>
+        <div id="kb-low"></div>
+      </div>
+    </div>
+
+  </div><!-- end content-area -->
+
+  <!-- SUPABASE CONFIG MODAL -->
+  <div id="config-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <h3 class="modal-title">🗄️ Connect Supabase</h3>
+      <p class="modal-desc">Enter your Supabase credentials to enable cloud sync.</p>
+      <label class="modal-label">Project URL</label>
+      <input type="text" id="sb-url" class="modal-input" placeholder="https://xxxx.supabase.co"/>
+      <label class="modal-label">Publishable Key</label>
+      <input type="text" id="sb-key" class="modal-input" placeholder="sb_publishable_..."/>
+      <div class="modal-actions">
+        <button class="btn-modal-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn-modal-save"   onclick="saveSupabaseConfig()">Connect ✦</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD CATEGORY MODAL -->
+  <div class="cat-modal-overlay hidden" id="cat-modal">
+    <div class="cat-modal-card">
+      <div class="cat-modal-title">➕ New Category</div>
+      <label class="cat-modal-label">Name</label>
+      <input type="text" id="cat-modal-name" class="cat-modal-input" placeholder="e.g. Travel, Fitness…" maxlength="20"/>
+      <label class="cat-modal-label">Pick an Emoji</label>
+      <div class="emoji-picker" id="emoji-picker">
+        <div class="emoji-opt selected" onclick="pickEmoji('📌',this)">📌</div>
+        <div class="emoji-opt" onclick="pickEmoji('✈️',this)">✈️</div>
+        <div class="emoji-opt" onclick="pickEmoji('🎮',this)">🎮</div>
+        <div class="emoji-opt" onclick="pickEmoji('🎨',this)">🎨</div>
+        <div class="emoji-opt" onclick="pickEmoji('🏋️',this)">🏋️</div>
+        <div class="emoji-opt" onclick="pickEmoji('📷',this)">📷</div>
+        <div class="emoji-opt" onclick="pickEmoji('🍳',this)">🍳</div>
+        <div class="emoji-opt" onclick="pickEmoji('🎵',this)">🎵</div>
+        <div class="emoji-opt" onclick="pickEmoji('💡',this)">💡</div>
+        <div class="emoji-opt" onclick="pickEmoji('🌍',this)">🌍</div>
+        <div class="emoji-opt" onclick="pickEmoji('🏠',this)">🏡</div>
+        <div class="emoji-opt" onclick="pickEmoji('🐾',this)">🐾</div>
+      </div>
+      <div class="cat-modal-actions">
+        <button class="btn-cat-cancel" onclick="closeCatModal()">Cancel</button>
+        <button class="btn-cat-save"   onclick="saveCustomCategory()">Save ✦</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+  <script src="supabase.js"></script>
+  <script src="app.js"></script>
+  <script>
+    // ── Category colors map (built-in + dynamic for custom) ──
+    const CAT_COLORS = {
+      Work:     { bg:'rgba(99,102,241,0.15)',  color:'#6366F1' },
+      Personal: { bg:'rgba(232,168,76,0.15)',  color:'#C8793A' },
+      Health:   { bg:'rgba(122,158,95,0.15)',  color:'#7A9E5F' },
+      Study:    { bg:'rgba(232,98,74,0.12)',   color:'#E8624A' },
+      Shopping: { bg:'rgba(236,72,153,0.12)',  color:'#EC4899' },
+      Finance:  { bg:'rgba(16,185,129,0.12)',  color:'#10B981' },
+      Home:     { bg:'rgba(245,158,11,0.12)',  color:'#D97706' },
+    };
+
+    // ── State ──
+    let currentView      = 'list';
+    let currentCat       = 'all';
+    let miniChart        = null;
+    let customCategories = [];   // { name, emoji }
+    let selectedCatEmoji = '📌';
+
+    // ── Init ──
+    document.addEventListener('DOMContentLoaded', () => {
+      loadUserInfo();
+      setHeaderDate();
+      document.getElementById('due-date-input').value = new Date().toISOString().split('T')[0];
+      loadCustomCategories();
+    });
+
+    // ── Custom Categories ────────────────────────────────────────
+
+    async function loadCustomCategories() {
+      const user = SupabaseDB.getUser();
+      if (user) {
+        try {
+          const rows = await SupabaseDB.getCategories();
+          customCategories = rows || [];
+        } catch(e) {
+          const saved = localStorage.getItem('dn_custom_cats');
+          customCategories = saved ? JSON.parse(saved) : [];
+        }
+      } else {
+        const saved = localStorage.getItem('dn_custom_cats');
+        customCategories = saved ? JSON.parse(saved) : [];
+      }
+      renderCustomChips();
+      updateCustomCatSelect();
+    }
+
+    function renderCustomChips() {
+      // Remove old custom chips
+      document.querySelectorAll('.cat-chip-custom').forEach(el => el.remove());
+      const scroll = document.getElementById('category-scroll');
+      const addBtn = scroll.querySelector('.cat-chip-add');
+      customCategories.forEach(cat => {
+        // Register color for badge rendering
+        if (!CAT_COLORS[cat.name]) {
+          CAT_COLORS[cat.name] = { bg:'rgba(160,114,74,0.15)', color:'#A0724A' };
+        }
+        const btn = document.createElement('button');
+        btn.className = 'cat-chip cat-chip-custom';
+        btn.dataset.cat = cat.name;
+        btn.innerHTML = `${cat.emoji} ${cat.name} <span class="cat-count" id="cc-${cat.name}">0</span>`;
+        btn.onclick = () => setCategory(cat.name, btn);
+        scroll.insertBefore(btn, addBtn);
+      });
+      updateCatCounts();
+    }
+
+    function updateCustomCatSelect() {
+      const select = document.getElementById('cat-select');
+      select.querySelectorAll('[data-custom]').forEach(o => o.remove());
+      customCategories.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat.name;
+        opt.textContent = `${cat.emoji} ${cat.name}`;
+        opt.dataset.custom = '1';
+        select.appendChild(opt);
+      });
+    }
+
+    function openCatModal() {
+      selectedCatEmoji = '📌';
+      document.getElementById('cat-modal-name').value = '';
+      document.querySelectorAll('.emoji-opt').forEach(e => e.classList.remove('selected'));
+      document.querySelector('.emoji-opt').classList.add('selected');
+      document.getElementById('cat-modal').classList.remove('hidden');
+      setTimeout(() => document.getElementById('cat-modal-name').focus(), 100);
+    }
+
+    function closeCatModal() {
+      document.getElementById('cat-modal').classList.add('hidden');
+    }
+
+    function pickEmoji(emoji, el) {
+      selectedCatEmoji = emoji;
+      document.querySelectorAll('.emoji-opt').forEach(e => e.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+
+    async function saveCustomCategory() {
+      const name = document.getElementById('cat-modal-name').value.trim();
+      if (!name) { showToast('Please enter a category name ⚠️'); return; }
+
+      const builtIn = ['work','personal','health','study','shopping','finance','home'];
+      const existing = [...builtIn, ...customCategories.map(c => c.name.toLowerCase())];
+      if (existing.includes(name.toLowerCase())) {
+        showToast('Category already exists ⚠️'); return;
+      }
+
+      const newCat = { name, emoji: selectedCatEmoji };
+
+      // Save to Supabase if logged in
+      const user = SupabaseDB.getUser();
+      if (user) {
+        try { await SupabaseDB.insertCategory(newCat); }
+        catch(e) { console.log('Cat save error:', e.message); }
+      }
+
+      // Always save locally
+      customCategories.push(newCat);
+      localStorage.setItem('dn_custom_cats', JSON.stringify(customCategories));
+
+      renderCustomChips();
+      updateCustomCatSelect();
+      closeCatModal();
+      showToast(`"${name}" category added! ${selectedCatEmoji}`);
+    }
+
+    // Close cat modal on overlay click
+    document.getElementById('cat-modal').addEventListener('click', function(e) {
+      if (e.target === this) closeCatModal();
+    });
+
+    // ── Mini Dash ────────────────────────────────────────────────
+
+    function updateMiniDash() {
+      if (typeof tasks === 'undefined') return;
+      const total = tasks.length;
+      const done  = tasks.filter(t => t.done).length;
+      const high  = tasks.filter(t => t.priority === 'high' && !t.done).length;
+      const rate  = total ? Math.round((done / total) * 100) : 0;
+      document.getElementById('md-total').textContent = total;
+      document.getElementById('md-done').textContent  = done;
+      document.getElementById('md-high').textContent  = high;
+      document.getElementById('md-rate').textContent  = rate + '%';
+      updateCatCounts();
+      updateMiniChart();
+      if (currentView === 'kanban') renderKanban();
+    }
+
+    function updateCatCounts() {
+      if (typeof tasks === 'undefined') return;
+      const builtIn = ['Work','Personal','Health','Study','Shopping','Finance','Home'];
+      document.getElementById('cc-all').textContent = tasks.length;
+      [...builtIn, ...customCategories.map(c => c.name)].forEach(c => {
+        const el = document.getElementById('cc-' + c);
+        if (el) el.textContent = tasks.filter(t => t.category === c).length;
+      });
+    }
+
+    // ── Category filter ──────────────────────────────────────────
+
+    function setCategory(cat, btn) {
+      currentCat = cat;
+      document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      if (typeof renderTasks === 'function') renderTasks();
+      if (currentView === 'kanban') renderKanban();
+    }
+
+    // ── View switch ──────────────────────────────────────────────
+
+    function switchView(view) {
+      currentView = view;
+      document.getElementById('btn-list-view').classList.toggle('active', view === 'list');
+      document.getElementById('btn-kanban-view').classList.toggle('active', view === 'kanban');
+      document.getElementById('list-view').style.display = view === 'list' ? 'block' : 'none';
+      const kb = document.getElementById('kanban-view');
+      kb.classList.toggle('visible', view === 'kanban');
+      if (view === 'kanban') renderKanban();
+    }
+
+    // ── Kanban render ────────────────────────────────────────────
+
+    function renderKanban() {
+      if (typeof tasks === 'undefined') return;
+      const filtered = tasks.filter(t => !t.done && (currentCat === 'all' || t.category === currentCat));
+      ['high','medium','low'].forEach(p => {
+        const col   = document.getElementById('kb-' + p);
+        const items = filtered.filter(t => t.priority === p);
+        col.innerHTML = items.length ? items.map(t => {
+          const cat = t.category || 'Personal';
+          const cc  = CAT_COLORS[cat] || { color: '#A0724A' };
+          return `<div class="kanban-task ${p}" onclick="toggleDone('${t.id}')">
+            ${t.text}
+            <div class="kanban-cat-badge" style="color:${cc.color}">${cat}</div>
+          </div>`;
+        }).join('') : '<p style="color:var(--text-soft);font-size:0.78rem;padding:8px 0;">No tasks</p>';
+      });
+    }
+
+    // ── Mini Chart ───────────────────────────────────────────────
+
+    function updateMiniChart() {
+      if (typeof tasks === 'undefined') return;
+      const high   = tasks.filter(t => t.priority === 'high'   && !t.done).length;
+      const medium = tasks.filter(t => t.priority === 'medium' && !t.done).length;
+      const low    = tasks.filter(t => t.priority === 'low'    && !t.done).length;
+      const done   = tasks.filter(t => t.done).length;
+      if (miniChart) miniChart.destroy();
+      const ctx = document.getElementById('miniChart');
+      if (!ctx) return;
+      miniChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['High','Medium','Low','Done'],
+          datasets: [{ data: [high, medium, low, done], backgroundColor: ['#E8624A','#E8A84C','#7A9E5F','#A0B090'], borderWidth: 0, hoverOffset: 4 }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false, cutout: '70%',
+          plugins: { legend: { position:'right', labels:{ font:{family:'Nunito',weight:'700',size:11}, padding:10, boxWidth:12 } } }
+        }
+      });
+    }
+
+    // ── Patch app.js functions after load ────────────────────────
+
+    window.addEventListener('load', () => {
+      // Patch getFilteredTasks to respect category filter
+      const origGetFiltered = window.getFilteredTasks;
+      if (origGetFiltered) {
+        window.getFilteredTasks = function() {
+          let results = origGetFiltered();
+          if (currentCat !== 'all') results = results.filter(t => t.category === currentCat);
+          return results;
+        };
+      }
+
+      // Patch buildTaskEl to show category badge
+      const origBuild = window.buildTaskEl;
+      if (origBuild) {
+        window.buildTaskEl = function(task) {
+          const el  = origBuild(task);
+          const cat = task.category || '';
+          if (cat && CAT_COLORS[cat]) {
+            const badge = document.createElement('span');
+            badge.className        = 'cat-badge';
+            badge.style.background = CAT_COLORS[cat].bg;
+            badge.style.color      = CAT_COLORS[cat].color;
+            badge.textContent      = cat;
+            const meta = el.querySelector('.task-meta');
+            if (meta) meta.appendChild(badge);
+          }
+          return el;
+        };
+      }
+
+      // Patch addTask to include selected category
+      const origAdd = window.addTask;
+      if (origAdd) {
+        window.addTask = async function() {
+          const catEl      = document.getElementById('cat-select');
+          const origLen    = (typeof tasks !== 'undefined') ? tasks.length : 0;
+          await origAdd();
+          if (typeof tasks !== 'undefined' && tasks.length > origLen) {
+            tasks[0].category = catEl ? catEl.value : 'Personal';
+            saveToCacheLocal && saveToCacheLocal();
+          }
+        };
+      }
+
+      // Patch updateProgress to also refresh mini dash
+      const origUpdate = window.updateProgress;
+      if (origUpdate) {
+        window.updateProgress = function() {
+          origUpdate();
+          updateMiniDash();
+        };
+      }
+
+      setTimeout(() => updateMiniDash(), 800);
+    });
+
+    // ── Helpers ──────────────────────────────────────────────────
+
+    function setHeaderDate() {
+      document.getElementById('header-date').textContent =
+        new Date().toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' });
+    }
+
+    function loadUserInfo() {
+      const raw  = localStorage.getItem('dn_user');
+      const user = raw ? JSON.parse(raw) : { name:'Guest', email:'', isGuest:true };
+      const av   = localStorage.getItem('dn_avatar') || (user.isGuest ? '👤' : (user.name||'U').charAt(0).toUpperCase());
+      document.getElementById('sidebar-username').textContent = user.name  || 'Guest';
+      document.getElementById('sidebar-email').textContent    = user.email || 'Local mode';
+      document.getElementById('sidebar-avatar').textContent   = av;
+      document.getElementById('btn-logout').style.display     = user.isGuest ? 'none' : 'block';
+    }
+
+    function openModal()  { document.getElementById('config-modal').classList.remove('hidden'); }
+    function closeModal() { document.getElementById('config-modal').classList.add('hidden'); }
+
+    async function saveSupabaseConfig() {
+      const url = document.getElementById('sb-url').value.trim();
+      const key = document.getElementById('sb-key').value.trim();
+      if (!url || !key) { showToast('Please enter both URL and key ⚠️'); return; }
+      try {
+        await SupabaseDB.connect(url, key);
+        closeModal();
+        showToast('Connected! 🎉');
+      } catch(e) { showToast('Failed: ' + e.message); }
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebar-overlay').classList.toggle('active');
+    }
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebar-overlay').classList.remove('active');
+    }
+    function handleLogout() {
+      SupabaseDB.logout();
+      localStorage.removeItem('dn_user');
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
+</html>
