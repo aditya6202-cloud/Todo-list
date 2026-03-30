@@ -93,6 +93,7 @@ async function loadTasks() {
     const rows = await SupabaseDB.loadAll().catch(() => null);
     if (rows) {
       tasks = rows.map(normalizeRow);
+      applyHabitResets();
       saveToCacheLocal();
       return;
     }
@@ -100,16 +101,73 @@ async function loadTasks() {
   // Fallback: localStorage
   const cached = localStorage.getItem('dn_tasks');
   tasks = cached ? JSON.parse(cached) : defaultTasks();
+  applyHabitResets();
+}
+
+function applyHabitResets() {
+  const todayStr = today();
+  let dirty = false;
+  
+  tasks.forEach(t => {
+    if (t.recurrence === 'daily') {
+      if (t.done && t.last_completed && t.last_completed < todayStr) {
+        t.done = false;
+        t.completed_at = null;
+        t.due_date = todayStr;
+        dirty = true;
+      }
+      if (!t.done && t.last_completed && t.last_completed < todayStr) {
+        const dtLast = new Date(t.last_completed + 'T00:00:00');
+        const dtNow  = new Date(todayStr + 'T00:00:00');
+        const diff = Math.round((dtNow - dtLast) / 86400000);
+        if (diff > 1 && t.streak > 0) {
+          t.streak = 0;
+          dirty = true;
+        }
+      }
+    } else if (t.recurrence === 'weekly') {
+      if (t.done && t.last_completed) {
+        const dtLast = new Date(t.last_completed + 'T00:00:00');
+        const dtNow  = new Date(todayStr + 'T00:00:00');
+        const diff = Math.round((dtNow - dtLast) / 86400000);
+        if (diff >= 7) {
+          t.done = false;
+          t.completed_at = null;
+          t.due_date = todayStr;
+          dirty = true;
+        }
+      }
+    }
+  });
+
+  if (dirty) {
+    saveToCacheLocal();
+    if (SupabaseDB.isConnected()) {
+      tasks.forEach(t => {
+        if (t.recurrence !== 'none') {
+          SupabaseDB.update(t.id, { 
+            done: t.done, completed_at: t.completed_at, due_date: t.due_date, streak: t.streak 
+          }).catch(()=>{});
+        }
+      });
+    }
+  }
 }
 
 function normalizeRow(row) {
   return {
-    id:       row.id,
-    text:     row.text,
-    done:     row.done,
-    priority: row.priority || 'medium',
-    due_date: row.due_date || '',
-    category: row.category || 'Personal',  // ← add this line
+    id:             row.id,
+    text:           row.text,
+    done:           row.done,
+    priority:       row.priority    || 'medium',
+    due_date:       row.due_date    || '',
+    category:       row.category    || 'Personal',
+    reminder_time:  row.reminder_time  || null,
+    recurrence:     row.recurrence     || 'none',
+    started_at:     row.started_at     || null,
+    completed_at:   row.completed_at   || null,
+    streak:         row.streak         || 0,
+    last_completed: row.last_completed || null,
   };
 }
 
@@ -136,7 +194,17 @@ async function addTask() {
   const due_date = document.getElementById('due-date-input').value;
 
   // Start with a temp local id (replaced by Supabase uuid on success)
-  const newTask = { id: uid(), text, done: false, priority, due_date };
+  const newTask = {
+   id: uid(), text, done: false, priority, due_date,
+   category: document.getElementById('cat-select')?.value || 'Personal',
+   reminder_time: document.getElementById('reminder-input').value || null,
+   recurrence:    document.getElementById('recurrence-select').value || 'none',
+   started_at:    null,
+   completed_at:  null,
+   streak:        0,
+   last_completed: null
+ };
+  
 
   if (SupabaseDB.isConnected()) {
     try {
@@ -220,6 +288,7 @@ function getFilteredTasks() {
     const matchFilter   =
       currentFilter === 'all'    ? true :
       currentFilter === 'done'   ? t.done :
+      currentFilter === 'habits' ? (t.recurrence && t.recurrence !== 'none') :
       currentFilter === 'high'   ? t.priority === 'high'   && !t.done :
       currentFilter === 'medium' ? t.priority === 'medium' && !t.done :
       currentFilter === 'low'    ? t.priority === 'low'    && !t.done :
@@ -267,6 +336,11 @@ function buildTaskEl(task) {
     : '';
 
   const priorityEmoji = { high: '🔴', medium: '🟡', low: '🟢' };
+  
+  let habitBadge = '';
+  if (task.recurrence && task.recurrence !== 'none') {
+    habitBadge = `<span class="streak-badge" title="Habit Streak">🔥 ${task.streak || 0}</span>`;
+  }
 
   el.innerHTML = `
     <div class="task-check ${task.done ? 'checked' : ''}" onclick="toggleDone('${task.id}')">
@@ -276,6 +350,7 @@ function buildTaskEl(task) {
       <div class="task-text">${escHtml(task.text)}</div>
       <div class="task-meta">
         <span class="priority-badge ${task.priority}">${priorityEmoji[task.priority]} ${task.priority}</span>
+        ${habitBadge}
         ${dueLabel}
       </div>
     </div>
@@ -470,4 +545,43 @@ function togglePass(inputId, btn) {
     input.type = 'password';
     btn.textContent = '👁';
   }
+}
+
+async function toggleDone(id) {
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+  task.done = !task.done;
+
+  const todayStr = today();
+
+  if (task.done) {
+    task.completed_at = new Date().toISOString();
+    if (!task.started_at) task.started_at = task.completed_at;
+    
+    if (task.recurrence === 'daily' || task.recurrence === 'weekly') {
+      task.last_completed = todayStr;
+      task.streak = (task.streak || 0) + 1;
+    }
+  } else {
+    task.completed_at = null; // un-done resets it
+    
+    if (task.recurrence === 'daily' || task.recurrence === 'weekly') {
+      if (task.last_completed === todayStr) {
+        task.streak = Math.max(0, (task.streak || 1) - 1);
+        task.last_completed = null;
+      }
+    }
+  }
+
+  if (SupabaseDB.isConnected()) {
+    await SupabaseDB.update(id, {
+      done:           task.done,
+      completed_at:   task.completed_at,
+      started_at:     task.started_at,
+      streak:         task.streak,
+      last_completed: task.last_completed
+    }).catch(() => {});
+  }
+  saveToCacheLocal();
+  renderTasks();
 }

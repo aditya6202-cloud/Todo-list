@@ -6,11 +6,41 @@
   <title>Daynest — My Tasks</title>
   <link rel="stylesheet" href="style.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Lora:ital,wght@0,500;1,400&display=swap" rel="stylesheet"/>
+  <script src="theme.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <style>
     /* ── LAYOUT ── */
     .main-layout { display: flex; min-height: 100vh; }
     .content-area { flex: 1; padding: 0 18px 80px; max-width: 780px; margin: 0 auto; width: 100%; }
+
+    /* ── QUOTE CARD ── */
+    .quote-card {
+      background: linear-gradient(135deg, var(--amber), var(--amber-deep));
+      border-radius: var(--radius-lg); padding: 22px 20px;
+      box-shadow: 0 6px 20px rgba(232,168,76,0.35); margin-bottom: 16px;
+      position: relative; overflow: hidden;
+    }
+    .quote-card::before {
+      content: '"'; position: absolute; top: -10px; left: 12px;
+      font-size: 6rem; color: rgba(255,255,255,0.15);
+      font-family: 'Lora', serif; line-height: 1;
+    }
+    .quote-text {
+      font-family: 'Lora', serif; font-style: italic;
+      font-size: 0.95rem; color: white; line-height: 1.7;
+      margin-bottom: 10px; position: relative; z-index: 1;
+    }
+    .quote-author {
+      font-size: 0.78rem; font-weight: 800; color: rgba(255,255,255,0.8);
+      text-align: right; margin-right: 32px;
+    }
+    .quote-refresh {
+      position: absolute; top: 12px; right: 12px;
+      background: rgba(255,255,255,0.2); border: none; border-radius: 50%;
+      width: 30px; height: 30px; cursor: pointer; font-size: 0.9rem;
+      color: white; transition: transform 0.4s;
+    }
+    .quote-refresh:hover { transform: rotate(180deg); }
 
     /* ── MINI DASHBOARD STRIP ── */
     .mini-dash { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 18px; }
@@ -35,7 +65,6 @@
     .category-label { font-size: 0.75rem; font-weight: 800; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
     .category-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
     .category-scroll::-webkit-scrollbar { display: none; }
-
     .cat-chip {
       display: flex; align-items: center; gap: 6px;
       padding: 9px 14px; border-radius: 20px;
@@ -48,8 +77,6 @@
       padding: 1px 7px; font-size: 0.7rem; font-weight: 900;
     }
     .cat-chip.active { color: white !important; border-color: transparent !important; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-
-    /* Built-in category colors */
     .cat-all      { background: var(--cream); color: var(--text-mid); border-color: var(--sand); }
     .cat-all.active { background: var(--amber-deep); }
     .cat-work     { background: rgba(99,102,241,0.1); color: #6366F1; border-color: rgba(99,102,241,0.3); }
@@ -66,17 +93,12 @@
     .cat-finance.active { background: #10B981; }
     .cat-home     { background: rgba(245,158,11,0.1); color: #D97706; border-color: rgba(245,158,11,0.3); }
     .cat-home.active { background: #D97706; }
-
-    /* Custom user category chips */
     .cat-chip-custom { background: rgba(160,114,74,0.1); color: var(--brown-light); border-color: rgba(160,114,74,0.3); }
     .cat-chip-custom.active { background: var(--brown-light); color: white; }
-
-    /* + Add category button */
     .cat-chip-add {
       display: flex; align-items: center; gap: 5px;
       padding: 9px 14px; border-radius: 20px;
-      border: 2px dashed var(--sand);
-      background: transparent;
+      border: 2px dashed var(--sand); background: transparent;
       font-family: 'Nunito', sans-serif; font-size: 0.82rem; font-weight: 800;
       color: var(--text-soft); cursor: pointer; white-space: nowrap;
       transition: all 0.2s; flex-shrink: 0;
@@ -160,13 +182,21 @@
     .add-task-card { background: var(--cream); border-radius: var(--radius-lg); padding: 16px 18px; box-shadow: 0 4px 16px var(--shadow); margin-bottom: 16px; }
     .add-row-1 { display: flex; gap: 10px; margin-bottom: 10px; }
     .add-row-2 { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .add-row-3 { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
     .task-text-input { flex: 1; padding: 11px 14px; background: var(--warm-bg); border: 2px solid transparent; border-radius: var(--radius-sm); font-family: 'Nunito', sans-serif; font-size: 0.95rem; font-weight: 600; color: var(--text-dark); outline: none; transition: border-color 0.2s; }
     .task-text-input:focus { border-color: var(--amber); }
     .task-text-input::placeholder { color: var(--text-soft); }
-    .priority-select, .due-date-input, .cat-select { padding: 8px 10px; background: var(--warm-bg); border: 2px solid transparent; border-radius: var(--radius-sm); font-family: 'Nunito', sans-serif; font-size: 0.82rem; font-weight: 700; color: var(--text-mid); cursor: pointer; outline: none; transition: border-color 0.2s; flex: 1; min-width: 100px; }
-    .priority-select:focus, .due-date-input:focus, .cat-select:focus { border-color: var(--amber); }
+    .priority-select, .due-date-input, .cat-select, .reminder-input, .recurrence-select {
+      padding: 8px 10px; background: var(--warm-bg); border: 2px solid transparent;
+      border-radius: var(--radius-sm); font-family: 'Nunito', sans-serif;
+      font-size: 0.82rem; font-weight: 700; color: var(--text-mid);
+      cursor: pointer; outline: none; transition: border-color 0.2s; flex: 1; min-width: 100px;
+    }
+    .priority-select:focus, .due-date-input:focus, .cat-select:focus,
+    .reminder-input:focus, .recurrence-select:focus { border-color: var(--amber); }
     .btn-add { padding: 9px 22px; background: var(--amber-deep); color: white; border: none; border-radius: var(--radius-sm); font-family: 'Nunito', sans-serif; font-size: 0.9rem; font-weight: 800; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(200,121,58,0.3); flex-shrink: 0; }
     .btn-add:hover { background: var(--brown); transform: translateY(-2px); }
+    .reminder-label { font-size: 0.72rem; font-weight: 800; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; align-self: center; }
 
     /* ── TASK ITEM ── */
     .task-item { display: flex; align-items: center; gap: 12px; padding: 13px 14px; background: var(--warm-bg); border-radius: var(--radius-md); border-left: 4px solid transparent; box-shadow: 0 2px 8px var(--shadow); transition: all 0.3s; animation: taskSlideIn 0.3s ease both; margin-bottom: 8px; }
@@ -189,6 +219,7 @@
     .cat-badge { font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 10px; }
     .task-due { font-size: 0.7rem; font-weight: 600; color: var(--text-soft); }
     .task-due.overdue { color: var(--rust); }
+    .task-reminder-tag { font-size: 0.65rem; font-weight: 700; color: var(--amber-deep); background: rgba(232,168,76,0.15); padding: 2px 7px; border-radius: 10px; }
     .task-delete { background: none; border: none; cursor: pointer; font-size: 1rem; color: var(--text-soft); padding: 4px; border-radius: 6px; opacity: 0; transition: all 0.2s; flex-shrink: 0; }
     .task-item:hover .task-delete { opacity: 1; }
     .task-delete:hover { color: var(--rust); background: rgba(232,98,74,0.1); }
@@ -198,11 +229,67 @@
     .mini-chart-title { font-size: 0.85rem; font-weight: 800; color: var(--text-dark); margin-bottom: 12px; }
     .mini-chart-wrap { height: 120px; position: relative; }
 
+    /* ── NOTIFICATION BELL ── */
+    .notif-bell-wrap { position: relative; display: inline-block; }
+    .notif-bell {
+      position: relative; font-size: 1.2rem; cursor: pointer;
+      padding: 6px 8px; border-radius: var(--radius-sm);
+      transition: background 0.2s; margin-left: 8px;
+      background: var(--cream); box-shadow: 0 2px 8px var(--shadow);
+      display: flex; align-items: center; justify-content: center;
+      width: 38px; height: 38px;
+    }
+    .notif-bell:hover { background: var(--sand); }
+    .notif-bell.has-badge::after {
+      content: attr(data-count);
+      position: absolute; top: 2px; right: 2px;
+      background: var(--rust); color: white;
+      font-size: 0.58rem; font-weight: 900;
+      min-width: 16px; height: 16px;
+      border-radius: 8px; padding: 0 3px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Nunito', sans-serif;
+    }
+
+    /* ── NOTIFICATION PANEL ── */
+    .notif-panel {
+      position: absolute; top: calc(100% + 10px); right: 0;
+      width: 300px; background: var(--cream);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 12px 40px rgba(58,37,16,0.22);
+      z-index: 150; overflow: hidden;
+      display: none; animation: modalSlide 0.2s ease both;
+    }
+    .notif-panel.open { display: block; }
+    .notif-panel-header {
+      padding: 14px 16px 10px;
+      background: linear-gradient(135deg, var(--amber), var(--amber-deep));
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .notif-panel-title { font-size: 0.88rem; font-weight: 900; color: white; }
+    .notif-panel-close {
+      background: rgba(255,255,255,0.2); border: none; border-radius: 6px;
+      width: 24px; height: 24px; cursor: pointer; font-size: 0.75rem;
+      color: white; font-weight: 900; display: flex; align-items: center; justify-content: center;
+    }
+    #notif-panel-list { max-height: 320px; overflow-y: auto; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+    .notif-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 12px; background: var(--warm-bg);
+      border-radius: var(--radius-sm); transition: background 0.2s;
+    }
+    .notif-item.unread { background: rgba(232,168,76,0.12); border-left: 3px solid var(--amber); }
+    .notif-item-icon { font-size: 1rem; flex-shrink: 0; margin-top: 2px; }
+    .notif-item-text { font-size: 0.82rem; font-weight: 700; color: var(--text-dark); line-height: 1.3; }
+    .notif-item-time { font-size: 0.68rem; font-weight: 600; color: var(--text-soft); margin-top: 3px; }
+    .notif-empty { text-align: center; padding: 24px; font-size: 0.85rem; font-weight: 600; color: var(--text-soft); font-family: 'Lora', serif; font-style: italic; }
+
     /* ── RESPONSIVE ── */
     @media (max-width: 600px) {
       .mini-dash { grid-template-columns: repeat(2,1fr); }
       #kanban-view { grid-template-columns: 1fr; }
-      .add-row-2 { flex-wrap: wrap; }
+      .add-row-2, .add-row-3 { flex-wrap: wrap; }
+      .notif-panel { width: 260px; right: -8px; }
     }
   </style>
 </head>
@@ -223,6 +310,7 @@
       <a class="sidebar-link active"><span>📋</span> My Tasks</a>
       <a class="sidebar-link" onclick="window.location.href='dashboard.html'"><span>📊</span> Dashboard</a>
       <a class="sidebar-link" onclick="window.location.href='timer.html'"><span>⏱️</span> Pomodoro</a>
+      <a class="sidebar-link" onclick="window.location.href='habits.html'"><span>🌱</span> Habits</a>
       <a class="sidebar-link" onclick="window.location.href='profile.html'"><span>👤</span> My Profile</a>
     </nav>
     <div class="sidebar-footer">
@@ -241,10 +329,31 @@
         <button class="btn-hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
         <h2 class="app-logo">Daynest</h2>
       </div>
-      <div class="header-right">
+      <div class="header-right" style="display:flex;align-items:center;gap:4px;">
         <span class="header-date" id="header-date"></span>
+        <!-- ── NOTIFICATION BELL ── -->
+        <div class="notif-bell-wrap">
+          <div id="notif-bell" class="notif-bell" data-count="0" onclick="toggleNotifPanel()">🔔</div>
+          <!-- NOTIFICATION PANEL (drops down from bell) -->
+          <div id="notif-panel" class="notif-panel">
+            <div class="notif-panel-header">
+              <span class="notif-panel-title">⏰ Reminders</span>
+              <button class="notif-panel-close" onclick="toggleNotifPanel()">✕</button>
+            </div>
+            <div id="notif-panel-list">
+              <div class="notif-empty">No reminders yet 🌱</div>
+            </div>
+          </div>
+        </div>
       </div>
     </header>
+
+    <!-- QUOTE CARD STRIP -->
+    <div class="quote-card">
+      <button class="quote-refresh" onclick="loadQuote()" title="New quote">↻</button>
+      <div class="quote-text" id="quote-text">Loading your daily motivation...</div>
+      <div class="quote-author" id="quote-author">— Daynest</div>
+    </div>
 
     <!-- MINI DASHBOARD STRIP -->
     <div class="mini-dash">
@@ -294,6 +403,7 @@
     <div class="category-section">
       <div class="category-label">📁 Categories</div>
       <div class="category-scroll" id="category-scroll">
+        
         <button class="cat-chip cat-all active" data-cat="all" onclick="setCategory('all',this)">
           🗂️ All <span class="cat-count" id="cc-all">0</span>
         </button>
@@ -318,8 +428,9 @@
         <button class="cat-chip cat-home" data-cat="Home" onclick="setCategory('Home',this)">
           🏠 Home <span class="cat-count" id="cc-Home">0</span>
         </button>
-        <!-- custom chips injected here by JS -->
         <button class="cat-chip-add" onclick="openCatModal()">＋ Add</button>
+        <!-- custom chips injected here by JS -->
+        
       </div>
     </div>
 
@@ -366,6 +477,16 @@
           <option value="Home">🏠 Home</option>
         </select>
         <input type="date" id="due-date-input" class="due-date-input"/>
+      </div>
+      <!-- ── REMINDER ROW (new) ── -->
+      <div class="add-row-3">
+        <span class="reminder-label">⏰ Remind at:</span>
+        <input type="datetime-local" id="reminder-input" class="reminder-input"/>
+        <select id="recurrence-select" class="recurrence-select">
+          <option value="none">No repeat</option>
+          <option value="daily">Every day</option>
+          <option value="weekly">Every week</option>
+        </select>
       </div>
     </div>
 
@@ -469,8 +590,9 @@
   <div id="toast"></div>
   <script src="supabase.js"></script>
   <script src="app.js"></script>
+  <script src="notifications.js"></script>
   <script>
-    // ── Category colors map (built-in + dynamic for custom) ──
+    // ── Category colors map ──
     const CAT_COLORS = {
       Work:     { bg:'rgba(99,102,241,0.15)',  color:'#6366F1' },
       Personal: { bg:'rgba(232,168,76,0.15)',  color:'#C8793A' },
@@ -481,20 +603,60 @@
       Home:     { bg:'rgba(245,158,11,0.12)',  color:'#D97706' },
     };
 
-    // ── State ──
     let currentView      = 'list';
     let currentCat       = 'all';
     let miniChart        = null;
-    let customCategories = [];   // { name, emoji }
+    let customCategories = [];
     let selectedCatEmoji = '📌';
 
-    // ── Init ──
     document.addEventListener('DOMContentLoaded', () => {
       loadUserInfo();
       setHeaderDate();
       document.getElementById('due-date-input').value = new Date().toISOString().split('T')[0];
       loadCustomCategories();
+      loadQuote();
     });
+
+    const QUOTES = [
+      { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+      { text: "It always seems impossible until it's done.", author: "Nelson Mandela" },
+      { text: "Focus on being productive instead of busy.", author: "Tim Ferriss" },
+      { text: "Small steps every day lead to big results.", author: "Unknown" },
+      { text: "You don't have to be great to start, but you have to start to be great.", author: "Zig Ziglar" }
+    ];
+
+    let lastQuoteIdx = -1;
+    async function loadQuote() {
+      const el = document.getElementById('quote-text');
+      const authorEl = document.getElementById('quote-author');
+      if (!el || !authorEl) return;
+      el.style.opacity = '0';
+      
+      try {
+        const res = await fetch('https://dummyjson.com/quotes/random');
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        
+        setTimeout(() => {
+          el.textContent = data.quote;
+          authorEl.textContent = '— ' + data.author;
+          el.style.transition = 'opacity 0.5s';
+          el.style.opacity = '1';
+        }, 300);
+      } catch(e) {
+        let idx;
+        do { idx = Math.floor(Math.random() * QUOTES.length); } while (idx === lastQuoteIdx);
+        lastQuoteIdx = idx;
+        const q = QUOTES[idx];
+        
+        setTimeout(() => {
+          el.textContent = q.text;
+          authorEl.textContent = '— ' + q.author;
+          el.style.transition = 'opacity 0.5s';
+          el.style.opacity = '1';
+        }, 300);
+      }
+    }
 
     // ── Custom Categories ────────────────────────────────────────
 
@@ -517,12 +679,10 @@
     }
 
     function renderCustomChips() {
-      // Remove old custom chips
       document.querySelectorAll('.cat-chip-custom').forEach(el => el.remove());
       const scroll = document.getElementById('category-scroll');
       const addBtn = scroll.querySelector('.cat-chip-add');
       customCategories.forEach(cat => {
-        // Register color for badge rendering
         if (!CAT_COLORS[cat.name]) {
           CAT_COLORS[cat.name] = { bg:'rgba(160,114,74,0.15)', color:'#A0724A' };
         }
@@ -570,33 +730,25 @@
     async function saveCustomCategory() {
       const name = document.getElementById('cat-modal-name').value.trim();
       if (!name) { showToast('Please enter a category name ⚠️'); return; }
-
       const builtIn = ['work','personal','health','study','shopping','finance','home'];
       const existing = [...builtIn, ...customCategories.map(c => c.name.toLowerCase())];
       if (existing.includes(name.toLowerCase())) {
         showToast('Category already exists ⚠️'); return;
       }
-
       const newCat = { name, emoji: selectedCatEmoji };
-
-      // Save to Supabase if logged in
       const user = SupabaseDB.getUser();
       if (user) {
         try { await SupabaseDB.insertCategory(newCat); }
         catch(e) { console.log('Cat save error:', e.message); }
       }
-
-      // Always save locally
       customCategories.push(newCat);
       localStorage.setItem('dn_custom_cats', JSON.stringify(customCategories));
-
       renderCustomChips();
       updateCustomCatSelect();
       closeCatModal();
       showToast(`"${name}" category added! ${selectedCatEmoji}`);
     }
 
-    // Close cat modal on overlay click
     document.getElementById('cat-modal').addEventListener('click', function(e) {
       if (e.target === this) closeCatModal();
     });
@@ -696,6 +848,7 @@
     // ── Patch app.js functions after load ────────────────────────
 
     window.addEventListener('load', () => {
+
       // Patch getFilteredTasks to respect category filter
       const origGetFiltered = window.getFilteredTasks;
       if (origGetFiltered) {
@@ -706,7 +859,7 @@
         };
       }
 
-      // Patch buildTaskEl to show category badge
+      // Patch buildTaskEl to show category badge + reminder tag
       const origBuild = window.buildTaskEl;
       if (origBuild) {
         window.buildTaskEl = function(task) {
@@ -721,20 +874,68 @@
             const meta = el.querySelector('.task-meta');
             if (meta) meta.appendChild(badge);
           }
+          // Show reminder tag if set
+          if (task.reminder_time && !task.done) {
+            const rt   = new Date(task.reminder_time);
+            const rtag = document.createElement('span');
+            rtag.className   = 'task-reminder-tag';
+            rtag.textContent = '⏰ ' + rt.toLocaleString([], { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+            const meta = el.querySelector('.task-meta');
+            if (meta) meta.appendChild(rtag);
+          }
           return el;
         };
       }
 
-      // Patch addTask to include selected category
+      // Patch addTask to include category + reminder + recurrence
       const origAdd = window.addTask;
       if (origAdd) {
         window.addTask = async function() {
-          const catEl      = document.getElementById('cat-select');
-          const origLen    = (typeof tasks !== 'undefined') ? tasks.length : 0;
+          const catEl        = document.getElementById('cat-select');
+          const reminderEl   = document.getElementById('reminder-input');
+          const recurrenceEl = document.getElementById('recurrence-select');
+          const origLen      = (typeof tasks !== 'undefined') ? tasks.length : 0;
           await origAdd();
           if (typeof tasks !== 'undefined' && tasks.length > origLen) {
-            tasks[0].category = catEl ? catEl.value : 'Personal';
+            tasks[0].category       = catEl        ? catEl.value        : 'Personal';
+            tasks[0].reminder_time  = reminderEl   ? (reminderEl.value  ? new Date(reminderEl.value).toISOString() : null) : null;
+            tasks[0].recurrence     = recurrenceEl ? recurrenceEl.value : 'none';
+            tasks[0].started_at     = null;
+            tasks[0].completed_at   = null;
             saveToCacheLocal && saveToCacheLocal();
+            // Clear reminder fields after adding
+            if (reminderEl)   reminderEl.value   = '';
+            if (recurrenceEl) recurrenceEl.value = 'none';
+          }
+        };
+      }
+
+      // Patch toggleDone to stamp started_at and completed_at
+      const origToggle = window.toggleDone;
+      if (origToggle) {
+        window.toggleDone = async function(id) {
+          if (typeof tasks !== 'undefined') {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+              const willBeDone = !task.done;
+              if (willBeDone) {
+                task.completed_at = new Date().toISOString();
+                if (!task.started_at) task.started_at = task.completed_at;
+              } else {
+                task.completed_at = null;
+              }
+            }
+          }
+          await origToggle(id);
+          // Re-sync timestamps to Supabase
+          if (typeof tasks !== 'undefined' && SupabaseDB.isConnected()) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+              SupabaseDB.update(id, {
+                completed_at: task.completed_at || null,
+                started_at:   task.started_at   || null,
+              }).catch(() => {});
+            }
           }
         };
       }

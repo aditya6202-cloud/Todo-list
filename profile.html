@@ -6,6 +6,7 @@
   <title>Daynest — My Profile</title>
   <link rel="stylesheet" href="style.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Lora:ital,wght@0,500;1,400&display=swap" rel="stylesheet"/>
+  <script src="theme.js"></script>
   <style>
     .profile-wrapper { max-width: 520px; margin: 0 auto; padding: 0 16px 80px; }
 
@@ -137,6 +138,29 @@
       color: var(--rust); cursor: pointer; transition: all 0.2s;
     }
     .danger-btn:hover { background: rgba(232,98,74,0.18); }
+
+    /* ── PREFERENCES ── */
+    .pref-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 14px; background: var(--warm-bg);
+      border-radius: var(--radius-sm); margin-bottom: 10px;
+    }
+    .pref-label { font-size: 0.9rem; font-weight: 700; color: var(--text-dark); }
+    .pref-sub { font-size: 0.7rem; color: var(--text-soft); font-weight: 600; margin-top: 2px; }
+    
+    .switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .switch-slider {
+      position: absolute; cursor: pointer; inset: 0;
+      background-color: var(--sand); border-radius: 24px; transition: .3s;
+    }
+    .switch-slider:before {
+      position: absolute; content: "";
+      height: 18px; width: 18px; left: 3px; bottom: 3px;
+      background-color: white; border-radius: 50%; transition: .3s;
+    }
+    input:checked + .switch-slider { background-color: var(--sage); }
+    input:checked + .switch-slider:before { transform: translateX(20px); }
   </style>
 </head>
 <body style="background: var(--warm-bg);">
@@ -154,6 +178,7 @@
       <a class="sidebar-link" onclick="window.location.href='app.html'"><span>📋</span> My Tasks</a>
       <a class="sidebar-link" onclick="window.location.href='dashboard.html'"><span>📊</span> Dashboard</a>
       <a class="sidebar-link" onclick="window.location.href='timer.html'"><span>⏱️</span> Pomodoro</a>
+      <a class="sidebar-link" onclick="window.location.href='habits.html'"><span>🌱</span> Habits</a>
       <a class="sidebar-link active"><span>👤</span> My Profile</a>
     </nav>
     <div class="sidebar-footer">
@@ -233,6 +258,31 @@
       </div>
     </div>
 
+    <!-- PREFERENCES -->
+    <div class="profile-section" id="settings-section">
+      <div class="section-title">⚙️ Preferences</div>
+      <div class="pref-row">
+        <div>
+          <div class="pref-label">Dark Mode</div>
+          <div class="pref-sub">Switch to a darker, cozy theme</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggle-dark" onchange="handleDarkToggle(this)"/>
+          <span class="switch-slider"></span>
+        </label>
+      </div>
+      <div class="pref-row">
+        <div>
+          <div class="pref-label">Enable Animations</div>
+          <div class="pref-sub">Turn off for a static, fast experience</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggle-anim" onchange="handleAnimToggle(this)"/>
+          <span class="switch-slider"></span>
+        </label>
+      </div>
+    </div>
+
     <!-- ACCOUNT -->
     <div class="profile-section">
       <div class="section-title">⚠️ Account</div>
@@ -249,7 +299,21 @@
     document.addEventListener('DOMContentLoaded', async () => {
       loadUserInfo();
       await loadStats();
+      
+      const isDark = localStorage.getItem('dn_theme') === 'dark';
+      document.getElementById('toggle-dark').checked = isDark;
+      
+      const isAnim = localStorage.getItem('dn_animations') !== 'false';
+      document.getElementById('toggle-anim').checked = isAnim;
     });
+
+    function handleDarkToggle(el) {
+      if (window.toggleTheme) window.toggleTheme(el.checked);
+    }
+    
+    function handleAnimToggle(el) {
+      if (window.toggleAnimations) window.toggleAnimations(el.checked);
+    }
 
     function loadUserInfo() {
       const raw  = localStorage.getItem('dn_user');

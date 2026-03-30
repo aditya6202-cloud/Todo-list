@@ -6,6 +6,7 @@
   <title>Daynest — Pomodoro Timer</title>
   <link rel="stylesheet" href="style.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Lora:ital,wght@0,500;1,400&display=swap" rel="stylesheet"/>
+  <script src="theme.js"></script>
   <style>
     .timer-wrapper { max-width: 480px; margin: 0 auto; padding: 0 16px 80px; }
 
@@ -190,6 +191,7 @@
       <a class="sidebar-link" onclick="window.location.href='app.html'"><span>📋</span> My Tasks</a>
       <a class="sidebar-link" onclick="window.location.href='dashboard.html'"><span>📊</span> Dashboard</a>
       <a class="sidebar-link active"><span>⏱️</span> Pomodoro</a>
+      <a class="sidebar-link" onclick="window.location.href='habits.html'"><span>🌱</span> Habits</a>
       <a class="sidebar-link" onclick="window.location.href='profile.html'"><span>👤</span> My Profile</a>
     </nav>
     <div class="sidebar-footer">
@@ -562,24 +564,36 @@
   ];
 
   let lastQuoteIdx = -1;
-  function loadQuote() {
-    // Try to use day-based quote for consistency
-    const dayIdx = new Date().getDate() % QUOTES.length;
-    let idx = dayIdx;
-    // If refresh clicked, pick random different one
-    if (document.getElementById('quote-text').textContent !== 'Loading your daily motivation...') {
-      do { idx = Math.floor(Math.random() * QUOTES.length); } while (idx === lastQuoteIdx);
-    }
-    lastQuoteIdx = idx;
-    const q = QUOTES[idx];
+  async function loadQuote() {
     const el = document.getElementById('quote-text');
+    const authorEl = document.getElementById('quote-author');
     el.style.opacity = '0';
-    setTimeout(() => {
-      el.textContent = q.text;
-      document.getElementById('quote-author').textContent = '— ' + q.author;
-      el.style.transition = 'opacity 0.5s';
-      el.style.opacity = '1';
-    }, 300);
+    
+    try {
+      const res = await fetch('https://dummyjson.com/quotes/random');
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      
+      setTimeout(() => {
+        el.textContent = data.quote;
+        authorEl.textContent = '— ' + data.author;
+        el.style.transition = 'opacity 0.5s';
+        el.style.opacity = '1';
+      }, 300);
+    } catch(e) {
+      // Fallback to local quotes if API fails
+      let idx;
+      do { idx = Math.floor(Math.random() * QUOTES.length); } while (idx === lastQuoteIdx);
+      lastQuoteIdx = idx;
+      const q = QUOTES[idx];
+      
+      setTimeout(() => {
+        el.textContent = q.text;
+        authorEl.textContent = '— ' + q.author;
+        el.style.transition = 'opacity 0.5s';
+        el.style.opacity = '1';
+      }, 300);
+    }
   }
 
   // ── Helpers ────────────────────────────────────

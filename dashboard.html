@@ -18,15 +18,12 @@
     /* STAT CARDS */
     .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
     .stat-card {
-      background: var(--cream);
-      border-radius: var(--radius-lg);
-      padding: 18px 16px;
-      box-shadow: 0 4px 16px var(--shadow);
-      display: flex; flex-direction: column; gap: 6px;
-      transition: transform 0.2s;
+      background: var(--cream); border-radius: var(--radius-lg);
+      padding: 18px 16px; box-shadow: 0 4px 16px var(--shadow);
+      display: flex; flex-direction: column; gap: 6px; transition: transform 0.2s;
     }
     .stat-card:hover { transform: translateY(-3px); }
-    .stat-icon { font-size: 1.6rem; }
+    .stat-icon  { font-size: 1.6rem; }
     .stat-value { font-size: 1.8rem; font-weight: 900; color: var(--text-dark); line-height: 1; }
     .stat-label { font-size: 0.75rem; font-weight: 700; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.6px; }
     .stat-card.amber  { border-top: 4px solid var(--amber); }
@@ -36,37 +33,29 @@
 
     /* CHART CARDS */
     .chart-card {
-      background: var(--cream);
-      border-radius: var(--radius-lg);
-      padding: 20px 18px;
-      box-shadow: 0 4px 16px var(--shadow);
-      margin-bottom: 16px;
+      background: var(--cream); border-radius: var(--radius-lg);
+      padding: 20px 18px; box-shadow: 0 4px 16px var(--shadow); margin-bottom: 16px;
     }
     .chart-title { font-size: 0.92rem; font-weight: 800; color: var(--text-dark); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-    .chart-wrap { position: relative; height: 200px; }
+    .chart-wrap  { position: relative; height: 200px; }
 
     /* STREAK */
     .streak-card {
       background: linear-gradient(135deg, var(--amber), var(--amber-deep));
-      border-radius: var(--radius-lg);
-      padding: 20px 18px;
+      border-radius: var(--radius-lg); padding: 20px 18px;
       box-shadow: 0 6px 20px rgba(232,168,76,0.35);
-      margin-bottom: 16px;
-      display: flex; align-items: center; gap: 16px;
-      color: white;
+      margin-bottom: 16px; display: flex; align-items: center; gap: 16px; color: white;
     }
-    .streak-flame { font-size: 2.8rem; }
-    .streak-info { flex: 1; }
-    .streak-count { font-size: 2rem; font-weight: 900; line-height: 1; }
-    .streak-label { font-size: 0.82rem; font-weight: 600; opacity: 0.85; }
+    .streak-flame  { font-size: 2.8rem; }
+    .streak-info   { flex: 1; }
+    .streak-count  { font-size: 2rem; font-weight: 900; line-height: 1; }
+    .streak-label  { font-size: 0.82rem; font-weight: 600; opacity: 0.85; }
 
     /* RECENT */
     .recent-list { display: flex; flex-direction: column; gap: 8px; }
     .recent-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 12px;
-      background: var(--warm-bg);
-      border-radius: var(--radius-md);
+      display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+      background: var(--warm-bg); border-radius: var(--radius-md);
       font-size: 0.85rem; font-weight: 700; color: var(--text-dark);
     }
     .recent-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
@@ -75,6 +64,32 @@
     .recent-dot.low    { background: var(--sage); }
     .recent-done { text-decoration: line-through; color: var(--text-soft); }
     .recent-time { margin-left: auto; font-size: 0.72rem; color: var(--text-soft); font-weight: 600; }
+
+    /* SUGGESTION CARD */
+    .suggestion-card {
+      background: linear-gradient(135deg, #FDF3E3, #F5E6CC);
+      border-radius: var(--radius-lg); padding: 20px 18px;
+      box-shadow: 0 4px 16px var(--shadow); margin-bottom: 16px;
+      border-left: 4px solid var(--amber);
+    }
+    .suggestion-title { font-size: 0.92rem; font-weight: 800; color: var(--text-dark); margin-bottom: 12px; }
+    .suggestion-text  { font-size: 0.9rem; font-weight: 600; color: var(--text-mid); line-height: 1.7; }
+    .suggestion-tips  { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .tip-item {
+      display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px;
+      background: rgba(255,255,255,0.6); border-radius: var(--radius-sm);
+      font-size: 0.82rem; font-weight: 700; color: var(--text-dark); line-height: 1.4;
+    }
+    .tip-icon { font-size: 1rem; flex-shrink: 0; }
+
+    /* TIME STATS */
+    .time-stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 16px; }
+    .time-stat-card {
+      background: var(--cream); border-radius: var(--radius-md);
+      padding: 14px 10px; text-align: center; box-shadow: 0 3px 12px var(--shadow);
+    }
+    .time-stat-val   { font-size: 1.4rem; font-weight: 900; color: var(--amber-deep); }
+    .time-stat-label { font-size: 0.65rem; font-weight: 700; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px; }
 
     /* NAV */
     .dash-nav { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
@@ -86,6 +101,11 @@
     }
     .dash-nav a:hover { background: var(--amber); color: white; }
     .dash-nav a.active { background: var(--amber-deep); color: white; }
+
+    @media (max-width: 600px) {
+      .stat-grid { grid-template-columns: 1fr; }
+      .time-stats-row { grid-template-columns: repeat(2,1fr); }
+    }
   </style>
 </head>
 <body style="background: var(--warm-bg);">
@@ -96,14 +116,15 @@
       <div class="sidebar-avatar" id="sidebar-avatar">👤</div>
       <div class="sidebar-user-info">
         <span class="sidebar-username" id="sidebar-username">Guest</span>
-        <span class="sidebar-email" id="sidebar-email">Local mode</span>
+        <span class="sidebar-email"    id="sidebar-email">Local mode</span>
       </div>
     </div>
     <nav class="sidebar-nav">
       <a class="sidebar-link" onclick="window.location.href='app.html'"><span>📋</span> My Tasks</a>
       <a class="sidebar-link active"><span>📊</span> Dashboard</a>
       <a class="sidebar-link" onclick="window.location.href='timer.html'"><span>⏱️</span> Pomodoro</a>
-        <a class="sidebar-link" onclick="window.location.href='profile.html'"><span>👤</span> My Profile</a>
+      <a class="sidebar-link" onclick="window.location.href='habits.html'"><span>🗓️</span> Habits</a>
+      <a class="sidebar-link" onclick="window.location.href='profile.html'"><span>👤</span> My Profile</a>
       <a class="sidebar-link" onclick="closeSidebar(); showToast('Coming soon! 🌱')"><span>⚙️</span> Settings</a>
     </nav>
     <div class="sidebar-footer">
@@ -134,7 +155,20 @@
     <div class="dash-nav">
       <a onclick="window.location.href='app.html'">📋 Tasks</a>
       <a class="active">📊 Dashboard</a>
+      <a onclick="window.location.href='habits.html'">🗓️ Habits</a>
       <a onclick="window.location.href='profile.html'">👤 Profile</a>
+    </div>
+
+    <!-- Habits Quick Access Card -->
+    <div class="chart-card" style="cursor:pointer;border-left:4px solid var(--sage);padding:16px 20px;" onclick="window.location.href='habits.html'">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-size:0.92rem;font-weight:900;color:var(--text-dark);margin-bottom:4px;">🗓️ Habit Tracker</div>
+          <div style="font-size:0.8rem;font-weight:600;color:var(--text-soft);" id="dash-habit-summary">Track your daily habits and build streaks</div>
+        </div>
+        <div style="font-size:1.8rem;font-weight:900;color:var(--sage);" id="dash-habit-streak">→</div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;" id="dash-habit-chips"></div>
     </div>
 
     <!-- Stat Cards -->
@@ -170,6 +204,22 @@
       </div>
     </div>
 
+    <!-- Time Stats Row (new) -->
+    <div class="time-stats-row">
+      <div class="time-stat-card">
+        <div class="time-stat-val" id="ts-avg">—</div>
+        <div class="time-stat-label">Avg time / task</div>
+      </div>
+      <div class="time-stat-card">
+        <div class="time-stat-val" id="ts-fastest">—</div>
+        <div class="time-stat-label">Fastest task</div>
+      </div>
+      <div class="time-stat-card">
+        <div class="time-stat-val" id="ts-tracked">0</div>
+        <div class="time-stat-label">Tasks tracked</div>
+      </div>
+    </div>
+
     <!-- Priority Breakdown Chart -->
     <div class="chart-card">
       <div class="chart-title">🎯 Priority Breakdown</div>
@@ -184,6 +234,29 @@
       <div class="chart-wrap">
         <canvas id="weeklyChart"></canvas>
       </div>
+    </div>
+
+    <!-- Avg Completion Time per Priority (new) -->
+    <div class="chart-card">
+      <div class="chart-title">⏱️ Avg completion time by priority <span style="font-size:0.72rem;color:var(--text-soft);font-weight:600;">(minutes)</span></div>
+      <div class="chart-wrap">
+        <canvas id="avgTimeChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Pace Trend Chart (new) -->
+    <div class="chart-card">
+      <div class="chart-title">📉 Your completion pace — last 7 tasks</div>
+      <div class="chart-wrap">
+        <canvas id="paceChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Smart Suggestion Card (new) -->
+    <div class="suggestion-card" id="suggestion-card">
+      <div class="suggestion-title">💡 Smart suggestions</div>
+      <div class="suggestion-text" id="suggestion-text">Complete more tasks to get personalised suggestions!</div>
+      <div class="suggestion-tips" id="suggestion-tips"></div>
     </div>
 
     <!-- Recent Tasks -->
@@ -207,21 +280,28 @@
       await loadTasks();
       renderStats();
       renderCharts();
+      renderAvgTimeChart();
+      renderPaceChart();
       renderRecent();
+      renderTimeStats();
+      renderSuggestion();
+      renderHabitSummary();
     });
 
     function setHeaderDate() {
+      const el   = document.getElementById('header-date');
       const opts = { weekday: 'long', month: 'long', day: 'numeric' };
-      document.getElementById('header-date').textContent = new Date().toLocaleDateString(undefined, opts);
+      el.textContent = new Date().toLocaleDateString(undefined, opts);
     }
 
     function loadUserInfo() {
       const raw  = localStorage.getItem('dn_user');
       const user = raw ? JSON.parse(raw) : { name: 'Guest', email: '', isGuest: true };
-      document.getElementById('sidebar-username').textContent = user.name || 'Guest';
+      const av   = localStorage.getItem('dn_avatar') || (user.isGuest ? '👤' : (user.name||'U').charAt(0).toUpperCase());
+      document.getElementById('dash-name').textContent        = user.name  || 'there';
+      document.getElementById('sidebar-username').textContent = user.name  || 'Guest';
       document.getElementById('sidebar-email').textContent    = user.email || 'Local mode';
-      document.getElementById('sidebar-avatar').textContent   = user.isGuest ? '👤' : (user.name||'U').charAt(0).toUpperCase();
-      document.getElementById('dash-name').textContent        = user.name || 'there';
+      document.getElementById('sidebar-avatar').textContent   = av;
     }
 
     async function loadTasks() {
@@ -235,24 +315,45 @@
       tasks = cached ? JSON.parse(cached) : [];
     }
 
+    // ── Stats ─────────────────────────────────────────────────────
+
     function renderStats() {
       const done    = tasks.filter(t => t.done).length;
       const pending = tasks.filter(t => !t.done).length;
       const high    = tasks.filter(t => t.priority === 'high' && !t.done).length;
       const rate    = tasks.length ? Math.round((done / tasks.length) * 100) : 0;
-
       document.getElementById('stat-done').textContent    = done;
       document.getElementById('stat-pending').textContent = pending;
       document.getElementById('stat-high').textContent    = high;
       document.getElementById('stat-rate').textContent    = rate + '%';
-
-      // Streak — count days since first task
       const streak = Math.min(tasks.length, 7);
       document.getElementById('streak-count').textContent = streak + (streak === 1 ? ' day' : ' days');
     }
 
+    // ── Time Stats (new) ──────────────────────────────────────────
+
+    function getTimedTasks() {
+      return tasks.filter(t => t.started_at && t.completed_at && t.done);
+    }
+
+    function minsFromTask(t) {
+      return Math.round((new Date(t.completed_at) - new Date(t.started_at)) / 60000);
+    }
+
+    function renderTimeStats() {
+      const timed = getTimedTasks().filter(t => minsFromTask(t) > 0 && minsFromTask(t) < 600);
+      document.getElementById('ts-tracked').textContent = timed.length;
+      if (!timed.length) return;
+      const mins    = timed.map(minsFromTask);
+      const avg     = Math.round(mins.reduce((s,v) => s+v, 0) / mins.length);
+      const fastest = Math.min(...mins);
+      document.getElementById('ts-avg').textContent     = avg     + ' min';
+      document.getElementById('ts-fastest').textContent = fastest + ' min';
+    }
+
+    // ── Original Charts ───────────────────────────────────────────
+
     function renderCharts() {
-      // Priority donut
       const high   = tasks.filter(t => t.priority === 'high').length;
       const medium = tasks.filter(t => t.priority === 'medium').length;
       const low    = tasks.filter(t => t.priority === 'low').length;
@@ -264,8 +365,7 @@
           datasets: [{
             data: [high, medium, low],
             backgroundColor: ['#E8624A', '#E8A84C', '#7A9E5F'],
-            borderWidth: 0,
-            hoverOffset: 6,
+            borderWidth: 0, hoverOffset: 6,
           }]
         },
         options: {
@@ -277,12 +377,10 @@
         }
       });
 
-      // Weekly bar chart
-      const days  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-      const today = new Date().getDay();
-      const labels = Array.from({length: 7}, (_, i) => days[(today - 6 + i + 7) % 7]);
-      const counts = Array(7).fill(0);
-
+      const days    = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      const todayDay = new Date().getDay();
+      const labels   = Array.from({length: 7}, (_, i) => days[(todayDay - 6 + i + 7) % 7]);
+      const counts   = Array(7).fill(0);
       tasks.forEach(t => {
         if (!t.created_at) return;
         const d    = new Date(t.created_at);
@@ -298,8 +396,7 @@
             label: 'Tasks',
             data: counts,
             backgroundColor: 'rgba(232,168,76,0.7)',
-            borderRadius: 8,
-            borderSkipped: false,
+            borderRadius: 8, borderSkipped: false,
           }]
         },
         options: {
@@ -313,18 +410,245 @@
       });
     }
 
-    function renderRecent() {
-      const list = document.getElementById('recent-list');
-      const recent = [...tasks].sort((a,b) => new Date(b.created_at||0) - new Date(a.created_at||0)).slice(0,5);
-      if (!recent.length) return;
-      list.innerHTML = recent.map(t => `
-        <div class="recent-item">
-          <div class="recent-dot ${t.priority}"></div>
-          <span class="${t.done ? 'recent-done' : ''}">${t.text}</span>
-          <span class="recent-time">${t.done ? '✅' : '⏳'}</span>
-        </div>
-      `).join('');
+    // ── Avg Time per Priority Chart (new) ─────────────────────────
+
+    function renderAvgTimeChart() {
+      const buckets = { high: [], medium: [], low: [] };
+      getTimedTasks().forEach(t => {
+        const m = minsFromTask(t);
+        if (m > 0 && m < 600 && buckets[t.priority]) buckets[t.priority].push(m);
+      });
+
+      const avg = p => buckets[p].length
+        ? Math.round(buckets[p].reduce((s,v) => s+v, 0) / buckets[p].length)
+        : 0;
+
+      const highAvg   = avg('high');
+      const medAvg    = avg('medium');
+      const lowAvg    = avg('low');
+      const hasData   = highAvg || medAvg || lowAvg;
+
+      new Chart(document.getElementById('avgTimeChart'), {
+        type: 'bar',
+        data: {
+          labels: ['🔴 High', '🟡 Medium', '🟢 Low'],
+          datasets: [{
+            label: 'Avg minutes',
+            data: hasData ? [highAvg, medAvg, lowAvg] : [0, 0, 0],
+            backgroundColor: ['rgba(232,98,74,0.75)', 'rgba(232,168,76,0.75)', 'rgba(122,158,95,0.75)'],
+            borderRadius: 8, borderSkipped: false,
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => ctx.parsed.y + ' min' } }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { callback: v => v + ' min', font: { family: 'Nunito', weight: '700' } },
+              grid: { color: 'rgba(0,0,0,0.05)' }
+            },
+            x: { ticks: { font: { family: 'Nunito', weight: '700' } }, grid: { display: false } }
+          }
+        }
+      });
     }
+
+    // ── Pace Trend Chart (new) ────────────────────────────────────
+
+    function renderPaceChart() {
+      const timed = getTimedTasks()
+        .filter(t => minsFromTask(t) > 0 && minsFromTask(t) < 600)
+        .sort((a,b) => new Date(a.completed_at) - new Date(b.completed_at))
+        .slice(-7);  // last 7 completed tasks
+
+      const labels = timed.length
+        ? timed.map((_, i) => 'Task ' + (i + 1))
+        : ['T1','T2','T3','T4','T5','T6','T7'];
+      const data   = timed.map(minsFromTask);
+
+      // Compute rolling average for the trend line
+      const trendData = data.map((_, i) => {
+        const window = data.slice(Math.max(0, i - 2), i + 1);
+        return Math.round(window.reduce((s,v) => s+v, 0) / window.length);
+      });
+
+      new Chart(document.getElementById('paceChart'), {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Time (min)',
+              data: data.length ? data : [],
+              backgroundColor: 'rgba(232,168,76,0.15)',
+              borderColor: '#E8A84C',
+              borderWidth: 2,
+              pointBackgroundColor: '#C8793A',
+              pointRadius: 5,
+              tension: 0.35,
+              fill: true,
+            },
+            {
+              label: 'Trend',
+              data: trendData.length ? trendData : [],
+              borderColor: 'rgba(122,158,95,0.7)',
+              borderWidth: 2,
+              borderDash: [5, 4],
+              pointRadius: 0,
+              tension: 0.35,
+              fill: false,
+            }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { font: { family: 'Nunito', weight: '700', size: 11 }, padding: 12, boxWidth: 12 } },
+            tooltip: { callbacks: { label: ctx => ctx.parsed.y + ' min' } }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { callback: v => v + 'm', font: { family: 'Nunito', weight: '700' } },
+              grid: { color: 'rgba(0,0,0,0.05)' }
+            },
+            x: { ticks: { font: { family: 'Nunito', weight: '700' } }, grid: { display: false } }
+          }
+        }
+      });
+    }
+
+    // ── Smart Suggestion (new) ────────────────────────────────────
+
+    function renderSuggestion() {
+      const timed   = getTimedTasks().filter(t => minsFromTask(t) > 0 && minsFromTask(t) < 600);
+      const textEl  = document.getElementById('suggestion-text');
+      const tipsEl  = document.getElementById('suggestion-tips');
+
+      if (timed.length < 3) {
+        textEl.textContent = 'Complete a few more tasks to unlock personalised suggestions! 🌱';
+        return;
+      }
+
+      const mins    = timed.map(minsFromTask);
+      const overall = Math.round(mins.reduce((s,v) => s+v, 0) / mins.length);
+
+      // Recent vs older average
+      const recent = mins.slice(-3);
+      const older  = mins.slice(0, -3);
+      const recentAvg = Math.round(recent.reduce((s,v) => s+v, 0) / recent.length);
+      const olderAvg  = older.length ? Math.round(older.reduce((s,v) => s+v, 0) / older.length) : recentAvg;
+      const diff      = recentAvg - olderAvg;
+
+      // Main message
+      if (diff > 15) {
+        textEl.textContent = `⚠️ Your last 3 tasks took ${diff} min longer than your usual pace. You might be taking on tasks that are too large — try breaking them down.`;
+      } else if (diff < -15) {
+        textEl.textContent = `🎉 You're ${Math.abs(diff)} min faster than your average pace. Great momentum — keep this energy going!`;
+      } else {
+        textEl.textContent = `✅ You're right on pace with your usual speed (avg ${overall} min/task). Consistent work beats rushed sprints!`;
+      }
+
+      // Contextual tips
+      const tips = [];
+      const highTasks   = tasks.filter(t => t.priority === 'high' && !t.done);
+      const overdueTasks = tasks.filter(t => t.due_date && !t.done && t.due_date < new Date().toISOString().split('T')[0]);
+      const noReminder  = tasks.filter(t => !t.done && !t.reminder_time);
+
+      if (overdueTasks.length > 0)
+        tips.push({ icon: '🚨', text: `You have ${overdueTasks.length} overdue task${overdueTasks.length > 1 ? 's' : ''}. Tackle these first before adding new ones.` });
+      if (highTasks.length > 3)
+        tips.push({ icon: '🎯', text: `${highTasks.length} high-priority tasks pending. Focus on these — limit yourself to 3 high-priority tasks at a time.` });
+      if (noReminder.length > 0 && noReminder.length <= 10)
+        tips.push({ icon: '⏰', text: `${noReminder.length} tasks have no reminder set. Adding reminders helps you stay on track without checking the app.` });
+      if (diff > 10)
+        tips.push({ icon: '✂️', text: 'Break large tasks into 15-30 min chunks. Smaller tasks are easier to start and complete without losing focus.' });
+      if (recentAvg < 10 && timed.length > 5)
+        tips.push({ icon: '⚡', text: 'You\'re completing tasks very quickly! Make sure you\'re setting reminders for bigger, harder tasks too.' });
+
+      tipsEl.innerHTML = tips.slice(0,3).map(t =>
+        `<div class="tip-item"><span class="tip-icon">${t.icon}</span><span>${t.text}</span></div>`
+      ).join('');
+    }
+
+    // ── Recent Tasks ──────────────────────────────────────────────
+
+    function renderRecent() {
+      const list   = document.getElementById('recent-list');
+      const recent = [...tasks]
+        .sort((a,b) => new Date(b.created_at||0) - new Date(a.created_at||0))
+        .slice(0, 5);
+      if (!recent.length) return;
+      list.innerHTML = recent.map(t => {
+        const duration = (t.started_at && t.completed_at && t.done)
+          ? `<span style="margin-left:4px;font-size:0.68rem;color:var(--amber-deep);font-weight:700;">⏱ ${minsFromTask(t)} min</span>`
+          : '';
+        return `
+          <div class="recent-item">
+            <div class="recent-dot ${t.priority}"></div>
+            <span class="${t.done ? 'recent-done' : ''}">${t.text}</span>
+            ${duration}
+            <span class="recent-time">${t.done ? '✅' : '⏳'}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ── Habit Summary on Dashboard ────────────────────────────────
+
+    function renderHabitSummary() {
+      const raw    = localStorage.getItem('dn_habits');
+      const habits = raw ? JSON.parse(raw) : [];
+      const today  = new Date().toISOString().split('T')[0];
+
+      const summaryEl = document.getElementById('dash-habit-summary');
+      const streakEl  = document.getElementById('dash-habit-streak');
+      const chipsEl   = document.getElementById('dash-habit-chips');
+
+      if (!habits.length) {
+        summaryEl.textContent = 'No habits tracked yet — click to add your first!';
+        streakEl.textContent  = '→';
+        return;
+      }
+
+      const doneTodayCount = habits.filter(h => h.logs && h.logs[today] === 'done').length;
+      summaryEl.textContent = `${doneTodayCount} of ${habits.length} habits done today`;
+
+      // Best streak across all habits
+      const bestStreak = habits.reduce((best, h) => {
+        let streak = 0;
+        const d = new Date();
+        if (h.logs && h.logs[today] !== 'done') d.setDate(d.getDate() - 1);
+        while (streak < 365) {
+          const key = d.toISOString().split('T')[0];
+          if (h.logs && h.logs[key] === 'done') { streak++; d.setDate(d.getDate() - 1); }
+          else break;
+        }
+        return Math.max(best, streak);
+      }, 0);
+      streakEl.textContent = bestStreak > 0 ? `🔥 ${bestStreak}` : '→';
+
+      // Show habit chips
+      chipsEl.innerHTML = habits.slice(0,5).map(h => {
+        const done = h.logs && h.logs[today] === 'done';
+        return `<span style="
+          display:inline-flex;align-items:center;gap:5px;
+          padding:4px 10px;border-radius:12px;font-size:0.72rem;font-weight:800;
+          background:${done ? 'rgba(122,158,95,0.2)' : 'rgba(232,98,74,0.12)'};
+          color:${done ? '#2d6a1f' : 'var(--rust)'};
+        ">
+          <span style="width:8px;height:8px;border-radius:50%;background:${h.color};display:inline-block;flex-shrink:0;"></span>
+          ${h.name.length > 14 ? h.name.slice(0,14) + '…' : h.name}
+          ${done ? '✓' : '✕'}
+        </span>`;
+      }).join('');
+    }
+
+    // ── Sidebar / nav ─────────────────────────────────────────────
 
     function toggleSidebar() {
       document.getElementById('sidebar').classList.toggle('open');
@@ -346,106 +670,6 @@
       clearTimeout(toastTimer);
       toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
     }
-    // ── Custom Categories ──────────────────────────────────────────
-let selectedCatEmoji = '📌';
-let customCategories = [];  // { name, emoji } objects
-
-// Load custom categories on page load — call this inside your DOMContentLoaded
-async function loadCustomCategories() {
-  const user = SupabaseDB.getUser();
-  if (user) {
-    try {
-      const rows = await SupabaseDB.getCategories();
-      customCategories = rows || [];
-    } catch(e) {
-      const saved = localStorage.getItem('dn_custom_cats');
-      customCategories = saved ? JSON.parse(saved) : [];
-    }
-  } else {
-    const saved = localStorage.getItem('dn_custom_cats');
-    customCategories = saved ? JSON.parse(saved) : [];
-  }
-  renderCustomChips();
-  updateCustomCatSelect();
-}
-
-function renderCustomChips() {
-  // Remove old custom chips first
-  document.querySelectorAll('.cat-chip-custom').forEach(el => el.remove());
-  const scroll  = document.getElementById('category-scroll');
-  const addBtn  = scroll.querySelector('.cat-chip-add');
-  customCategories.forEach(cat => {
-    const btn = document.createElement('button');
-    btn.className = 'cat-chip cat-chip-custom';
-    btn.dataset.cat = cat.name;
-    btn.innerHTML = `${cat.emoji} ${cat.name} <span class="cat-count" id="cc-${cat.name}">0</span>`;
-    btn.onclick = () => setCategory(cat.name, btn);
-    scroll.insertBefore(btn, addBtn);
-  });
-  updateCatCounts();
-}
-
-function updateCustomCatSelect() {
-  const select = document.getElementById('cat-select');
-  // Remove previously injected custom options
-  select.querySelectorAll('[data-custom]').forEach(o => o.remove());
-  customCategories.forEach(cat => {
-    const opt = document.createElement('option');
-    opt.value = cat.name;
-    opt.textContent = `${cat.emoji} ${cat.name}`;
-    opt.dataset.custom = '1';
-    select.appendChild(opt);
-  });
-}
-
-function openCatModal() {
-  selectedCatEmoji = '📌';
-  document.getElementById('cat-modal-name').value = '';
-  document.querySelectorAll('.emoji-opt').forEach(e => e.classList.remove('selected'));
-  document.querySelector('.emoji-opt').classList.add('selected');
-  document.getElementById('cat-modal').classList.remove('hidden');
-  setTimeout(() => document.getElementById('cat-modal-name').focus(), 100);
-}
-
-function closeCatModal() {
-  document.getElementById('cat-modal').classList.add('hidden');
-}
-
-function pickEmoji(emoji, el) {
-  selectedCatEmoji = emoji;
-  document.querySelectorAll('.emoji-opt').forEach(e => e.classList.remove('selected'));
-  el.classList.add('selected');
-}
-
-async function saveCustomCategory() {
-  const name = document.getElementById('cat-modal-name').value.trim();
-  if (!name) { showToast('Please enter a category name ⚠️'); return; }
-
-  // Check duplicate
-  const allNames = ['Work','Personal','Health','Study','Shopping','Finance','Home',
-    ...customCategories.map(c => c.name.toLowerCase())];
-  if (allNames.includes(name.toLowerCase())) {
-    showToast('Category already exists ⚠️'); return;
-  }
-
-  const newCat = { name, emoji: selectedCatEmoji };
-
-  // Save to Supabase
-  const user = SupabaseDB.getUser();
-  if (user) {
-    try { await SupabaseDB.insertCategory(newCat); }
-    catch(e) { console.log('Cat save error:', e.message); }
-  }
-
-  // Save locally too
-  customCategories.push(newCat);
-  localStorage.setItem('dn_custom_cats', JSON.stringify(customCategories));
-
-  renderCustomChips();
-  updateCustomCatSelect();
-  closeCatModal();
-  showToast(`Category "${name}" added! ${selectedCatEmoji}`);
-}
   </script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 /**
  * supabase.js — Daynest Supabase Integration
- * Handles Auth (signup/login) + Tasks CRUD + Custom Categories
+ * Handles Auth + Tasks CRUD + Categories + Habits CRUD + Habit Logs
  */
 
 const SupabaseDB = (() => {
@@ -112,12 +112,16 @@ const SupabaseDB = (() => {
     const rows = await request('/tasks', {
       method: 'POST',
       body: JSON.stringify({
-        user_id:  user.id,
-        text:     task.text,
-        done:     task.done,
-        priority: task.priority,
-        due_date: task.due_date  || null,
-        category: task.category  || 'Personal',  // ← category column
+        user_id:       user.id,
+        text:          task.text,
+        done:          task.done,
+        priority:      task.priority,
+        due_date:      task.due_date      || null,
+        category:      task.category      || 'Personal',
+        reminder_time: task.reminder_time || null,
+        recurrence:    task.recurrence    || 'none',
+        started_at:    task.started_at    || null,
+        completed_at:  task.completed_at  || null,
       }),
     });
     return Array.isArray(rows) ? rows[0] : rows;
@@ -179,6 +183,88 @@ const SupabaseDB = (() => {
     });
   }
 
+  // ── HABITS CRUD ───────────────────────────────
+  // habits table: id, user_id, name, color, created_at
+  // habit_logs table: id, habit_id, user_id, log_date (date), status ('done'|'missed')
+
+  async function loadHabits() {
+    const user = getUser();
+    if (!user) return [];
+
+    // Load habits
+    const habits = await request(
+      `/habits?user_id=eq.${user.id}&select=*&order=created_at.desc`
+    );
+
+    if (!habits || !habits.length) return [];
+
+    // Load all logs for this user this month
+    const now      = new Date();
+    const monthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2,'0')}`;
+    const logs     = await request(
+      `/habit_logs?user_id=eq.${user.id}&log_date=gte.${monthStr}-01&select=*`
+    ).catch(() => []);
+
+    // Merge logs into habits
+    return habits.map(h => {
+      const habitLogs = {};
+      logs
+        .filter(l => l.habit_id === h.id)
+        .forEach(l => { habitLogs[l.log_date] = l.status; });
+      return { id: h.id, name: h.name, color: h.color || '#7A9E5F', logs: habitLogs };
+    });
+  }
+
+  async function insertHabit(habit) {
+    const user = getUser();
+    if (!user) return null;
+    const rows = await request('/habits', {
+      method: 'POST',
+      body: JSON.stringify({
+        id:      habit.id,
+        user_id: user.id,
+        name:    habit.name,
+        color:   habit.color,
+      }),
+    });
+    return Array.isArray(rows) ? rows[0] : rows;
+  }
+
+  async function deleteHabit(id) {
+    const user = getUser();
+    if (!user) return;
+    // Logs cascade-delete via FK in Supabase if you set ON DELETE CASCADE
+    // Otherwise delete logs first:
+    await request(`/habit_logs?habit_id=eq.${id}`, {
+      method:  'DELETE',
+      headers: { 'Prefer': 'return=minimal' },
+    }).catch(() => {});
+    await request(`/habits?id=eq.${id}`, {
+      method:  'DELETE',
+      headers: { 'Prefer': 'return=minimal' },
+    });
+  }
+
+  // Upsert a single day log (insert or update)
+  async function upsertHabitLog(habitId, logDate, status) {
+    const user = getUser();
+    if (!user) return null;
+    const rows = await request('/habit_logs', {
+      method: 'POST',
+      headers: {
+        'Prefer': 'return=representation,resolution=merge-duplicates',
+        'On-Conflict': 'habit_id,log_date',
+      },
+      body: JSON.stringify({
+        habit_id: habitId,
+        user_id:  user.id,
+        log_date: logDate,
+        status,
+      }),
+    });
+    return Array.isArray(rows) ? rows[0] : rows;
+  }
+
   // ── DB Modal connect ──────────────────────────
   async function connect(url, key) {
     const res = await fetch(`${url.replace(/\/$/, '')}/rest/v1/tasks?limit=1&select=id`, {
@@ -191,12 +277,14 @@ const SupabaseDB = (() => {
   function isConnected()       { return true; }
   async function tryAutoConnect() {}
 
- return {
-  signup, login, logout, getUser,
-  loadAll, insert, update, remove, clearDoneTasks,
-  connect, isConnected, tryAutoConnect,
-  getCategories, insertCategory,           // ← add these two
-};
+  return {
+    signup, login, logout, getUser,
+    loadAll, insert, update, remove, clearDoneTasks,
+    connect, isConnected, tryAutoConnect,
+    getCategories, insertCategory, deleteCategory,
+    // ── Habits ──
+    loadHabits, insertHabit, deleteHabit, upsertHabitLog,
+  };
 
 })();
 
