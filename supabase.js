@@ -6,12 +6,12 @@
 const SupabaseDB = (() => {
 
   // ── YOUR SUPABASE CREDENTIALS ─────────────────
-  const SUPABASE_URL = 'https://skcayzoiqhbxwheilxpi.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_gg7tI15UElt-FoWSwZ7pCA_bSKamcom';
+  const DEFAULT_SUPABASE_URL = 'https://skcayzoiqhbxwheilxpi.supabase.co';
+  const DEFAULT_SUPABASE_KEY = 'sb_publishable_gg7tI15UElt-FoWSwZ7pCA_bSKamcom';
 
-  function getUrl()   { return SUPABASE_URL; }
-  function getKey()   { return SUPABASE_KEY; }
-  function getToken() { return localStorage.getItem('dn_auth_token') || SUPABASE_KEY; }
+  function getUrl()   { return localStorage.getItem('dn_sb_url') || DEFAULT_SUPABASE_URL; }
+  function getKey()   { return localStorage.getItem('dn_sb_key') || DEFAULT_SUPABASE_KEY; }
+  function getToken() { return localStorage.getItem('dn_auth_token') || getKey(); }
 
   // ── Headers ───────────────────────────────────
   function headers(useToken = false) {
@@ -267,10 +267,15 @@ const SupabaseDB = (() => {
 
   // ── DB Modal connect ──────────────────────────
   async function connect(url, key) {
-    const res = await fetch(`${url.replace(/\/$/, '')}/rest/v1/tasks?limit=1&select=id`, {
+    const cleanUrl = url.replace(/\/$/, '');
+    const res = await fetch(`${cleanUrl}/rest/v1/tasks?limit=1&select=id`, {
       headers: { 'apikey': key, 'Authorization': `Bearer ${key}` }
     });
     if (!res.ok) throw new Error(`Connection failed: ${res.status}`);
+    
+    // Save to local storage upon successful connection
+    localStorage.setItem('dn_sb_url', cleanUrl);
+    localStorage.setItem('dn_sb_key', key);
     return true;
   }
 
@@ -290,11 +295,11 @@ const SupabaseDB = (() => {
 
 // ── Forgot Password ───────────────────────────
 SupabaseDB.forgotPassword = async function(email) {
-  const SUPABASE_URL = 'https://skcayzoiqhbxwheilxpi.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_gg7tI15UElt-FoWSwZ7pCA_bSKamcom';
-  const res = await fetch(`${SUPABASE_URL}/auth/v1/recover`, {
+  const url = localStorage.getItem('dn_sb_url') || 'https://skcayzoiqhbxwheilxpi.supabase.co';
+  const key = localStorage.getItem('dn_sb_key') || 'sb_publishable_gg7tI15UElt-FoWSwZ7pCA_bSKamcom';
+  const res = await fetch(`${url}/auth/v1/recover`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+    headers: { 'Content-Type': 'application/json', 'apikey': key },
     body: JSON.stringify({ email }),
   });
   if (!res.ok) {
@@ -306,14 +311,14 @@ SupabaseDB.forgotPassword = async function(email) {
 
 // ── Update Profile ────────────────────────────
 SupabaseDB.updateProfile = async function(userId, changes) {
-  const SUPABASE_URL = 'https://skcayzoiqhbxwheilxpi.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_gg7tI15UElt-FoWSwZ7pCA_bSKamcom';
-  const token = localStorage.getItem('dn_auth_token') || SUPABASE_KEY;
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`, {
+  const url = localStorage.getItem('dn_sb_url') || 'https://skcayzoiqhbxwheilxpi.supabase.co';
+  const key = localStorage.getItem('dn_sb_key') || 'sb_publishable_gg7tI15UElt-FoWSwZ7pCA_bSKamcom';
+  const token = localStorage.getItem('dn_auth_token') || key;
+  const res = await fetch(`${url}/rest/v1/profiles?id=eq.${userId}`, {
     method: 'PATCH',
     headers: {
       'Content-Type':  'application/json',
-      'apikey':        SUPABASE_KEY,
+      'apikey':        key,
       'Authorization': `Bearer ${token}`,
       'Prefer':        'return=representation',
     },
