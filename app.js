@@ -220,67 +220,72 @@ function renderTasks() {
   });
 }
 
-function buildTaskEl(task) { {
+function buildTaskEl(task) {
   const el = document.createElement('div');
 
-const today = new Date();
+  // ✅ Normalize today's date (remove time)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-let warning = "";
+  let warning = "";
 
-if (task.due_date) {
-  const taskDate = new Date(task.due_date);
+  if (task.due_date) {
+    const taskDate = new Date(task.due_date);
+    taskDate.setHours(0, 0, 0, 0);
 
-  if (taskDate.toDateString() === today.toDateString()) {
-    warning = "⚠️ Due Today!";
+    // ✅ Due Today check
+    if (taskDate.getTime() === today.getTime()) {
+      warning = "⚠️ Due Today!";
+    }
   }
-}
-
 
   el.className = `task-item${task.done ? ' done' : ''}`;
   el.dataset.priority = task.priority;
   el.dataset.id = task.id;
 
-  el.innerHTML = `
-  <div style="font-weight:600;">${task.text}</div>
+  // ✅ Overdue check
+  const isOverdue =
+    task.due_date && !task.done && new Date(task.due_date) < new Date();
 
-  <div style="font-size:12px; color:gray;">
-    📅 ${task.due_date || "No date"}
-  </div>
-
-  <div style="color:red; font-size:12px;">
-    ${warning}
-  </div>
-`;
-}
-  
-
-if (task.due_date === today) {
-  warning = "⚠️ Due Today!";
-}
-  el.className = `task-item${task.done ? ' done' : ''}`;
-  el.dataset.priority = task.priority;
-  el.dataset.id = task.id;
-
-  const isOverdue = task.due_date && !task.done && task.due_date < today();
-  const dueLabel  = task.due_date
-    ? `<span class="task-due${isOverdue ? ' overdue' : ''}">${formatDate(task.due_date)}${isOverdue ? ' ⚠️' : ''}</span>`
+  const dueLabel = task.due_date
+    ? `<span class="task-due${isOverdue ? ' overdue' : ''}">
+        ${formatDate(task.due_date)}${isOverdue ? ' ⚠️' : ''}
+      </span>`
     : '';
 
-  const priorityEmoji = { high: '🔴', medium: '🟡', low: '🟢' };
+  const priorityEmoji = {
+    high: '🔴',
+    medium: '🟡',
+    low: '🟢'
+  };
 
   el.innerHTML = `
     <div class="task-check ${task.done ? 'checked' : ''}" onclick="toggleDone('${task.id}')">
       ${task.done ? '✓' : ''}
     </div>
+
     <div class="task-body">
       <div class="task-text">${escHtml(task.text)}</div>
+
       <div class="task-meta">
-        <span class="priority-badge ${task.priority}">${priorityEmoji[task.priority]} ${task.priority}</span>
+        <span class="priority-badge ${task.priority}">
+          ${priorityEmoji[task.priority]} ${task.priority}
+        </span>
+
         ${dueLabel}
+
+        ${warning ? `<span style="
+          color:#ff3b3b;
+          font-size:11px;
+          font-weight:600;
+          margin-left:6px;
+        ">⚠️ Due Today</span>` : ""}
       </div>
     </div>
+
     <button class="task-delete" onclick="deleteTask('${task.id}')" title="Delete task">✕</button>
   `;
+
   return el;
 }
 
