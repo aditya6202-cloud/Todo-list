@@ -7,7 +7,7 @@ const SupabaseDB = (() => {
 
   // ── YOUR SUPABASE CREDENTIALS ─────────────────
   const DEFAULT_SUPABASE_URL = 'https://skcayzoiqhbxwheilxpi.supabase.co';
-  const DEFAULT_SUPABASE_KEY = 'sb_publishable_gg7tI15UElt-FoWSwZ7pCA_bSKamcom';
+  const DEFAULT_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNrY2F5em9pcWhieHdoZWlseHBpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTQzNDMsImV4cCI6MjA4OTgzMDM0M30.x2n5Lrg6pXxYgiHk2QAxO-LCjSVEaqOCmH3s8sA25dI';
 
   function getUrl()   { return localStorage.getItem('dn_sb_url') || DEFAULT_SUPABASE_URL; }
   function getKey()   { return localStorage.getItem('dn_sb_key') || DEFAULT_SUPABASE_KEY; }
@@ -296,7 +296,7 @@ const SupabaseDB = (() => {
 // ── Forgot Password ───────────────────────────
 SupabaseDB.forgotPassword = async function(email) {
   const url = localStorage.getItem('dn_sb_url') || 'https://skcayzoiqhbxwheilxpi.supabase.co';
-  const key = localStorage.getItem('dn_sb_key') || 'sb_publishable_gg7tI15UElt-FoWSwZ7pCA_bSKamcom';
+  const key = localStorage.getItem('dn_sb_key') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNrY2F5em9pcWhieHdoZWlseHBpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTQzNDMsImV4cCI6MjA4OTgzMDM0M30.x2n5Lrg6pXxYgiHk2QAxO-LCjSVEaqOCmH3s8sA25dI';
   const res = await fetch(`${url}/auth/v1/recover`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'apikey': key },
@@ -312,7 +312,7 @@ SupabaseDB.forgotPassword = async function(email) {
 // ── Update Profile ────────────────────────────
 SupabaseDB.updateProfile = async function(userId, changes) {
   const url = localStorage.getItem('dn_sb_url') || 'https://skcayzoiqhbxwheilxpi.supabase.co';
-  const key = localStorage.getItem('dn_sb_key') || 'sb_publishable_gg7tI15UElt-FoWSwZ7pCA_bSKamcom';
+  const key = localStorage.getItem('dn_sb_key') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNrY2F5em9pcWhieHdoZWlseHBpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyNTQzNDMsImV4cCI6MjA4OTgzMDM0M30.x2n5Lrg6pXxYgiHk2QAxO-LCjSVEaqOCmH3s8sA25dI';
   const token = localStorage.getItem('dn_auth_token') || key;
   const res = await fetch(`${url}/rest/v1/profiles?id=eq.${userId}`, {
     method: 'PATCH',
