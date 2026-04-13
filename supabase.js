@@ -211,7 +211,7 @@ const SupabaseDB = (() => {
       logs
         .filter(l => l.habit_id === h.id)
         .forEach(l => { habitLogs[l.log_date] = l.status; });
-      return { id: h.id, name: h.name, color: h.color || '#7A9E5F', logs: habitLogs };
+      return { id: h.id, name: h.title || h.name, color: h.color || '#7A9E5F', logs: habitLogs };
     });
   }
 
@@ -223,7 +223,7 @@ const SupabaseDB = (() => {
       body: JSON.stringify({
         id:      habit.id,
         user_id: user.id,
-        name:    habit.name,
+        title:   habit.name,
         color:   habit.color,
       }),
     });
