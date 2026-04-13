@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Daynest — Pomodoro Timer</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Lora:ital,wght@0,500;1,400&display=swap" rel="stylesheet"/>
+  <style>
+    .timer-wrapper { max-width: 480px; margin: 0 auto; padding: 0 16px 80px; }
+
+    /* MODE TABS */
+    .mode-tabs {
+      display: flex; gap: 8px; margin-bottom: 20px;
+      background: var(--cream); padding: 6px; border-radius: var(--radius-lg);
+      box-shadow: 0 4px 16px var(--shadow);
+    }
+    .mode-tab {
+      flex: 1; padding: 10px 6px; border: none; border-radius: var(--radius-md);
+      font-family: 'Nunito', sans-serif; font-size: 0.82rem; font-weight: 800;
+      color: var(--text-soft); background: transparent; cursor: pointer;
+      transition: all 0.25s;
+    }
+    .mode-tab.active { background: var(--amber-deep); color: white; box-shadow: 0 4px 12px rgba(200,121,58,0.35); }
+
+    /* TIMER RING */
+    .timer-card {
+      background: var(--cream); border-radius: var(--radius-xl);
+      padding: 32px 24px; text-align: center;
+      box-shadow: 0 8px 28px var(--shadow); margin-bottom: 16px;
+    }
+    .timer-ring-wrap { position: relative; width: 220px; height: 220px; margin: 0 auto 20px; }
+    .timer-ring { transform: rotate(-90deg); }
+    .ring-bg   { fill: none; stroke: var(--sand); stroke-width: 10; }
+    .ring-fill {
+      fill: none; stroke: var(--amber-deep); stroke-width: 10;
+      stroke-linecap: round;
+      stroke-dasharray: 565;
+      stroke-dashoffset: 0;
+      transition: stroke-dashoffset 1s linear, stroke 0.5s;
+    }
+    .ring-fill.break { stroke: var(--sage); }
+    .ring-fill.longbreak { stroke: var(--brown-light); }
+
+    .timer-display {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+    .timer-time {
+      font-size: 2.8rem; font-weight: 900;
+      color: var(--text-dark); line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .timer-mode-label {
+      font-size: 0.78rem; font-weight: 700;
+      color: var(--text-soft); margin-top: 4px;
+      text-transform: uppercase; letter-spacing: 0.6px;
+    }
+
+    .timer-session-count {
+      display: flex; justify-content: center; gap: 8px; margin-bottom: 16px;
+    }
+    .session-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--sand); transition: background 0.3s;
+    }
+    .session-dot.done { background: var(--amber-deep); }
+
+    /* CONTROLS */
+    .timer-controls { display: flex; gap: 12px; justify-content: center; margin-bottom: 16px; }
+    .btn-timer-main {
+      padding: 14px 40px;
+      background: var(--amber-deep); color: white;
+      border: none; border-radius: var(--radius-xl);
+      font-family: 'Nunito', sans-serif; font-size: 1.1rem; font-weight: 900;
+      cursor: pointer; box-shadow: 0 6px 20px rgba(200,121,58,0.4);
+      transition: all 0.2s; min-width: 140px;
+    }
+    .btn-timer-main:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(200,121,58,0.45); }
+    .btn-timer-main:active { transform: translateY(0); }
+    .btn-timer-main.running { background: var(--rust); }
+
+    .btn-timer-reset {
+      padding: 14px 18px;
+      background: var(--warm-bg); color: var(--text-mid);
+      border: 2px solid var(--sand); border-radius: var(--radius-xl);
+      font-family: 'Nunito', sans-serif; font-size: 1rem; font-weight: 800;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-timer-reset:hover { border-color: var(--amber); color: var(--amber-deep); }
+
+    .timer-task-label {
+      font-size: 0.88rem; font-weight: 700; color: var(--text-soft);
+      font-family: 'Lora', serif; font-style: italic;
+    }
+
+    /* STATS STRIP */
+    .timer-stats {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 16px;
+    }
+    .tstat {
+      background: var(--cream); border-radius: var(--radius-md);
+      padding: 14px 10px; text-align: center;
+      box-shadow: 0 3px 10px var(--shadow);
+    }
+    .tstat-val   { font-size: 1.4rem; font-weight: 900; color: var(--amber-deep); }
+    .tstat-label { font-size: 0.7rem; font-weight: 700; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* TASK PICKER */
+    .task-picker-card {
+      background: var(--cream); border-radius: var(--radius-lg);
+      padding: 18px; box-shadow: 0 4px 16px var(--shadow); margin-bottom: 16px;
+    }
+    .task-picker-title { font-size: 0.85rem; font-weight: 800; color: var(--text-dark); margin-bottom: 12px; }
+    .task-pick-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; background: var(--warm-bg);
+      border-radius: var(--radius-md); margin-bottom: 8px;
+      cursor: pointer; transition: all 0.2s;
+      font-size: 0.88rem; font-weight: 700; color: var(--text-dark);
+      border: 2px solid transparent;
+    }
+    .task-pick-item:hover   { border-color: var(--amber); }
+    .task-pick-item.picked  { border-color: var(--amber-deep); background: rgba(232,168,76,0.1); }
+    .task-pick-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .task-pick-dot.high   { background: var(--rust); }
+    .task-pick-dot.medium { background: var(--amber); }
+    .task-pick-dot.low    { background: var(--sage); }
+
+    /* QUOTE CARD */
+    .quote-card {
+      background: linear-gradient(135deg, var(--amber), var(--amber-deep));
+      border-radius: var(--radius-lg); padding: 22px 20px;
+      box-shadow: 0 6px 20px rgba(232,168,76,0.35); margin-bottom: 16px;
+      position: relative; overflow: hidden;
+    }
+    .quote-card::before {
+      content: '"'; position: absolute; top: -10px; left: 12px;
+      font-size: 6rem; color: rgba(255,255,255,0.15);
+      font-family: 'Lora', serif; line-height: 1;
+    }
+    .quote-text {
+      font-family: 'Lora', serif; font-style: italic;
+      font-size: 0.95rem; color: white; line-height: 1.7;
+      margin-bottom: 10px; position: relative; z-index: 1;
+    }
+    .quote-author {
+      font-size: 0.78rem; font-weight: 800; color: rgba(255,255,255,0.8);
+      text-align: right;
+    }
+    .quote-refresh {
+      position: absolute; top: 12px; right: 12px;
+      background: rgba(255,255,255,0.2); border: none; border-radius: 50%;
+      width: 30px; height: 30px; cursor: pointer; font-size: 0.9rem;
+      color: white; transition: transform 0.4s;
+    }
+    .quote-refresh:hover { transform: rotate(180deg); }
+
+    /* AMBIENT SOUND */
+    .sound-strip {
+      background: var(--cream); border-radius: var(--radius-lg);
+      padding: 16px 18px; box-shadow: 0 4px 16px var(--shadow);
+      margin-bottom: 16px;
+    }
+    .sound-title { font-size: 0.82rem; font-weight: 800; color: var(--text-dark); margin-bottom: 10px; }
+    .sound-btns  { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-sound {
+      padding: 8px 14px; background: var(--warm-bg);
+      border: 2px solid transparent; border-radius: 20px;
+      font-family: 'Nunito', sans-serif; font-size: 0.82rem; font-weight: 700;
+      color: var(--text-mid); cursor: pointer; transition: all 0.2s;
+    }
+    .btn-sound:hover  { border-color: var(--amber); }
+    .btn-sound.active { background: var(--amber); color: white; border-color: var(--amber-deep); }
+  </style>
+</head>
+<body style="background: var(--warm-bg);">
+
+  <div id="sidebar-overlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-avatar" id="sidebar-avatar">👤</div>
+      <div class="sidebar-user-info">
+        <span class="sidebar-username" id="sidebar-username">Guest</span>
+        <span class="sidebar-email" id="sidebar-email">Local mode</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-link" onclick="window.location.href='app.html'"><span>📋</span> My Tasks</a>
+      <a class="sidebar-link" onclick="window.location.href='dashboard.html'"><span>📊</span> Dashboard</a>
+      <a class="sidebar-link active"><span>⏱️</span> Pomodoro</a>
+      <a class="sidebar-link" onclick="window.location.href='profile.html'"><span>👤</span> My Profile</a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" onclick="handleLogout()">🚪 Logout</button>
+    </div>
+  </aside>
+
+  <div class="timer-wrapper">
+    <header class="app-header">
+      <div class="header-left">
+        <button class="btn-hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+        <h2 class="app-logo">Daynest</h2>
+      </div>
+      <div class="header-right"><span class="header-date" id="header-date"></span></div>
+    </header>
+
+    <!-- Quote Card -->
+    <div class="quote-card">
+      <button class="quote-refresh" onclick="loadQuote()" title="New quote">↻</button>
+      <div class="quote-text" id="quote-text">Loading your daily motivation...</div>
+      <div class="quote-author" id="quote-author">— Daynest</div>
+    </div>
+
+    <!-- Mode Tabs -->
+    <div class="mode-tabs">
+      <button class="mode-tab active" onclick="setMode('pomodoro', this)">🍅 Pomodoro</button>
+      <button class="mode-tab" onclick="setMode('short', this)">☕ Short Break</button>
+      <button class="mode-tab" onclick="setMode('long', this)">🌿 Long Break</button>
+    </div>
+
+    <!-- Timer Ring -->
+    <div class="timer-card">
+      <div class="timer-ring-wrap">
+        <svg class="timer-ring" width="220" height="220" viewBox="0 0 220 220">
+          <circle class="ring-bg"   cx="110" cy="110" r="90"/>
+          <circle class="ring-fill" cx="110" cy="110" r="90" id="ring-fill"/>
+        </svg>
+        <div class="timer-display">
+          <div class="timer-time" id="timer-time">25:00</div>
+          <div class="timer-mode-label" id="timer-mode-label">Focus Time</div>
+        </div>
+      </div>
+
+      <!-- Session dots -->
+      <div class="timer-session-count" id="session-dots">
+        <div class="session-dot" id="dot-0"></div>
+        <div class="session-dot" id="dot-1"></div>
+        <div class="session-dot" id="dot-2"></div>
+        <div class="session-dot" id="dot-3"></div>
+      </div>
+
+      <div class="timer-task-label" id="timer-task-label">No task selected</div>
+
+      <!-- Controls -->
+      <div class="timer-controls" style="margin-top:16px;">
+        <button class="btn-timer-reset" onclick="resetTimer()">↺</button>
+        <button class="btn-timer-main" id="start-btn" onclick="toggleTimer()">▶ Start</button>
+        <button class="btn-timer-reset" onclick="skipSession()">⏭</button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="timer-stats">
+      <div class="tstat">
+        <div class="tstat-val" id="stat-sessions">0</div>
+        <div class="tstat-label">Sessions</div>
+      </div>
+      <div class="tstat">
+        <div class="tstat-val" id="stat-focus">0m</div>
+        <div class="tstat-label">Focus Time</div>
+      </div>
+      <div class="tstat">
+        <div class="tstat-val" id="stat-streak">0</div>
+        <div class="tstat-label">Today's 🍅</div>
+      </div>
+    </div>
+
+    <!-- Task Picker -->
+    <div class="task-picker-card">
+      <div class="task-picker-title">📌 Focus on a task</div>
+      <div id="task-pick-list">
+        <p style="color:var(--text-soft);font-size:0.83rem;text-align:center;padding:10px 0;">
+          No tasks found — <span style="color:var(--amber-deep);cursor:pointer;font-weight:800;" onclick="window.location.href='app.html'">add some tasks first</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Ambient Sounds -->
+    <div class="sound-strip">
+      <div class="sound-title">🎵 Ambient Sound</div>
+      <div class="sound-btns">
+        <button class="btn-sound" onclick="toggleSound('none', this)">🔇 Off</button>
+        <button class="btn-sound active" onclick="toggleSound('rain', this)">🌧️ Rain</button>
+        <button class="btn-sound" onclick="toggleSound('cafe', this)">☕ Café</button>
+        <button class="btn-sound" onclick="toggleSound('forest', this)">🌲 Forest</button>
+        <button class="btn-sound" onclick="toggleSound('waves', this)">🌊 Waves</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="toast"></div>
+  <script>
+  // ── State ───────────────────────────────────
+  const MODES = {
+    pomodoro:  { label: 'Focus Time',   mins: 25, color: 'var(--amber-deep)' },
+    short:     { label: 'Short Break',  mins: 5,  color: 'var(--sage)' },
+    long:      { label: 'Long Break',   mins: 15, color: 'var(--brown-light)' },
+  };
+
+  let currentMode    = 'pomodoro';
+  let timeLeft       = 25 * 60;
+  let totalTime      = 25 * 60;
+  let isRunning      = false;
+  let interval       = null;
+  let sessionsToday  = parseInt(localStorage.getItem('dn_sessions_today') || '0');
+  let focusMins      = parseInt(localStorage.getItem('dn_focus_mins') || '0');
+  let selectedTask   = null;
+  let audioCtx       = null;
+  let soundType      = 'rain';
+  let soundNode      = null;
+  const CIRCUMFERENCE = 2 * Math.PI * 90; // 565.48
+
+  // ── Init ────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    loadUserInfo();
+    setHeaderDate();
+    loadQuote();
+    loadTasks();
+    updateDisplay();
+    updateStats();
+    requestNotificationPermission();
+  });
+
+  // ── Mode ────────────────────────────────────
+  function setMode(mode, btn) {
+    if (isRunning) { showToast('Stop the timer first ⚠️'); return; }
+    currentMode = mode;
+    timeLeft = totalTime = MODES[mode].mins * 60;
+    document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('timer-mode-label').textContent = MODES[mode].label;
+    const ring = document.getElementById('ring-fill');
+    ring.className = 'ring-fill' + (mode === 'short' ? ' break' : mode === 'long' ? ' longbreak' : '');
+    updateDisplay();
+  }
+
+  // ── Timer ────────────────────────────────────
+  function toggleTimer() {
+    isRunning ? pauseTimer() : startTimer();
+  }
+
+  function startTimer() {
+    isRunning = true;
+    document.getElementById('start-btn').textContent = '⏸ Pause';
+    document.getElementById('start-btn').classList.add('running');
+    interval = setInterval(tick, 1000);
+    if (soundType !== 'none') startAmbientSound();
+  }
+
+  function pauseTimer() {
+    isRunning = false;
+    document.getElementById('start-btn').textContent = '▶ Start';
+    document.getElementById('start-btn').classList.remove('running');
+    clearInterval(interval);
+    stopAmbientSound();
+  }
+
+  function resetTimer() {
+    pauseTimer();
+    timeLeft = totalTime = MODES[currentMode].mins * 60;
+    updateDisplay();
+  }
+
+  function skipSession() {
+    pauseTimer();
+    onSessionComplete();
+  }
+
+  function tick() {
+    timeLeft--;
+    updateDisplay();
+    if (timeLeft <= 0) {
+      pauseTimer();
+      onSessionComplete();
+    }
+  }
+
+  function onSessionComplete() {
+    playDingSound();
+    sendNotification();
+
+    if (currentMode === 'pomodoro') {
+      sessionsToday++;
+      focusMins += MODES.pomodoro.mins;
+      localStorage.setItem('dn_sessions_today', sessionsToday);
+      localStorage.setItem('dn_focus_mins', focusMins);
+      updateStats();
+      updateSessionDots();
+      showToast('🍅 Pomodoro done! Take a break!');
+      // Auto switch to break
+      const breakMode = sessionsToday % 4 === 0 ? 'long' : 'short';
+      setTimeout(() => {
+        document.querySelectorAll('.mode-tab').forEach((t,i) => {
+          t.classList.toggle('active', (i===1 && breakMode==='short') || (i===2 && breakMode==='long'));
+        });
+        currentMode = breakMode;
+        timeLeft = totalTime = MODES[breakMode].mins * 60;
+        document.getElementById('timer-mode-label').textContent = MODES[breakMode].label;
+        updateDisplay();
+      }, 1500);
+    } else {
+      showToast('☕ Break over! Time to focus!');
+      setTimeout(() => {
+        document.querySelectorAll('.mode-tab').forEach((t,i) => t.classList.toggle('active', i===0));
+        currentMode = 'pomodoro';
+        timeLeft = totalTime = MODES.pomodoro.mins * 60;
+        document.getElementById('timer-mode-label').textContent = MODES.pomodoro.label;
+        updateDisplay();
+      }, 1500);
+    }
+  }
+
+  // ── Display ──────────────────────────────────
+  function updateDisplay() {
+    const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+    const s = (timeLeft % 60).toString().padStart(2, '0');
+    document.getElementById('timer-time').textContent = `${m}:${s}`;
+    document.title = isRunning ? `${m}:${s} — Daynest` : 'Daynest — Pomodoro';
+
+    const progress = timeLeft / totalTime;
+    const offset   = CIRCUMFERENCE * (1 - progress);
+    document.getElementById('ring-fill').style.strokeDashoffset = offset;
+    document.getElementById('ring-fill').style.strokeDasharray  = CIRCUMFERENCE;
+  }
+
+  function updateStats() {
+    document.getElementById('stat-sessions').textContent = sessionsToday;
+    document.getElementById('stat-focus').textContent    = focusMins + 'm';
+    document.getElementById('stat-streak').textContent   = sessionsToday;
+  }
+
+  function updateSessionDots() {
+    for (let i = 0; i < 4; i++) {
+      document.getElementById(`dot-${i}`).classList.toggle('done', i < (sessionsToday % 4) || sessionsToday % 4 === 0 && sessionsToday > 0);
+    }
+  }
+
+  // ── Sound — real audio from free CDN ─────────
+  const SOUND_URLS = {
+   rain:   'sound/rain.mp3',
+  cafe:   'sound/cafe.mp3',
+  forest: 'sound/forest.mp3',
+  waves:  'sound/bird.mp3',
+  };
+
+  let currentAudio = null;
+
+  function toggleSound(type, btn) {
+    soundType = type;
+    document.querySelectorAll('.btn-sound').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    stopAmbientSound();
+    if (isRunning && type !== 'none') startAmbientSound();
+    else if (type !== 'none') showToast('Sound will play when timer starts 🎵');
+  }
+
+  function startAmbientSound() {
+    if (soundType === 'none') return;
+    try {
+      stopAmbientSound();
+      currentAudio = new Audio(SOUND_URLS[soundType]);
+      currentAudio.loop   = true;
+      currentAudio.volume = 0;
+      currentAudio.play().catch(() => showToast('Click anywhere to enable sound 🔊'));
+      let vol = 0;
+      const fadeIn = setInterval(() => {
+        vol = Math.min(vol + 0.05, 0.4);
+        if (currentAudio) currentAudio.volume = vol;
+        if (vol >= 0.4) clearInterval(fadeIn);
+      }, 100);
+    } catch(e) {}
+  }
+
+  function stopAmbientSound() {
+    if (!currentAudio) return;
+    const audio = currentAudio;
+    currentAudio = null;
+    let vol = audio.volume;
+    const fadeOut = setInterval(() => {
+      vol = Math.max(vol - 0.05, 0);
+      audio.volume = vol;
+      if (vol <= 0) { clearInterval(fadeOut); audio.pause(); }
+    }, 80);
+  }
+
+  function playDingSound() {
+    try {
+      const ctx  = new (window.AudioContext || window.webkitAudioContext)();
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.frequency.setValueAtTime(660, ctx.currentTime + 0.1);
+      osc.frequency.setValueAtTime(440, ctx.currentTime + 0.2);
+      gain.gain.setValueAtTime(0.4, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.6);
+    } catch(e) {}
+  }
+
+  // ── Notifications ─────────────────────────────
+  function requestNotificationPermission() {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }
+
+  function sendNotification() {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      const msg = currentMode === 'pomodoro' ? '🍅 Pomodoro done! Time for a break!' : '☕ Break over! Back to focus!';
+      new Notification('Daynest', { body: msg, icon: '' });
+    }
+  }
+
+  // ── Tasks ────────────────────────────────────
+  async function loadTasks() {
+    let tasks = [];
+    try {
+      const userId = JSON.parse(localStorage.getItem('dn_user'))?.id || "guest";
+      const res = await fetch(`http://localhost:5000/tasks/${userId}`);
+      if (res.ok) {
+        tasks = await res.json();
+      } else {
+        throw new Error("Failed to load");
+      }
+    } catch (e) {
+      const c = localStorage.getItem('dn_tasks');
+      tasks = c ? JSON.parse(c) : [];
+    }
+    const pending = tasks.filter(t => !t.done).slice(0, 5);
+    const list    = document.getElementById('task-pick-list');
+    if (!pending.length) return;
+    list.innerHTML = pending.map(t => `
+      <div class="task-pick-item" onclick="pickTask(this, '${t.id}', \`${t.text.replace(/`/g,"'")}\`)">
+        <div class="task-pick-dot ${t.priority}"></div>
+        <span>${t.text}</span>
+      </div>
+    `).join('');
+  }
+
+  function pickTask(el, id, text) {
+    document.querySelectorAll('.task-pick-item').forEach(i => i.classList.remove('picked'));
+    el.classList.add('picked');
+    selectedTask = { id, text };
+    document.getElementById('timer-task-label').textContent = '📌 ' + text;
+    showToast('Task selected! Stay focused 💪');
+  }
+
+  // ── Quote ─────────────────────────────────────
+  const QUOTES = [
+    { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+    { text: "It always seems impossible until it's done.", author: "Nelson Mandela" },
+    { text: "Focus on being productive instead of busy.", author: "Tim Ferriss" },
+    { text: "Small steps every day lead to big results.", author: "Unknown" },
+    { text: "You don't have to be great to start, but you have to start to be great.", author: "Zig Ziglar" },
+    { text: "The way to get started is to quit talking and begin doing.", author: "Walt Disney" },
+    { text: "Done is better than perfect.", author: "Sheryl Sandberg" },
+    { text: "Your future is created by what you do today, not tomorrow.", author: "Robert Kiyosaki" },
+    { text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
+    { text: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
+    { text: "One task at a time. Do it well. Move on.", author: "Daynest" },
+    { text: "Every minute you spend planning saves 10 minutes in execution.", author: "Brian Tracy" },
+  ];
+
+  let lastQuoteIdx = -1;
+  function loadQuote() {
+    // Try to use day-based quote for consistency
+    const dayIdx = new Date().getDate() % QUOTES.length;
+    let idx = dayIdx;
+    // If refresh clicked, pick random different one
+    if (document.getElementById('quote-text').textContent !== 'Loading your daily motivation...') {
+      do { idx = Math.floor(Math.random() * QUOTES.length); } while (idx === lastQuoteIdx);
+    }
+    lastQuoteIdx = idx;
+    const q = QUOTES[idx];
+    const el = document.getElementById('quote-text');
+    el.style.opacity = '0';
+    setTimeout(() => {
+      el.textContent = q.text;
+      document.getElementById('quote-author').textContent = '— ' + q.author;
+      el.style.transition = 'opacity 0.5s';
+      el.style.opacity = '1';
+    }, 300);
+  }
+
+  // ── Helpers ────────────────────────────────────
+  function setHeaderDate() {
+    const opts = { weekday: 'long', month: 'long', day: 'numeric' };
+    document.getElementById('header-date').textContent = new Date().toLocaleDateString(undefined, opts);
+  }
+
+  function loadUserInfo() {
+    const raw  = localStorage.getItem('dn_user');
+    const user = raw ? JSON.parse(raw) : { name: 'Guest', email: '', isGuest: true };
+    const av   = localStorage.getItem('dn_avatar') || (user.isGuest ? '👤' : (user.name||'U').charAt(0).toUpperCase());
+    document.getElementById('sidebar-username').textContent = user.name || 'Guest';
+    document.getElementById('sidebar-email').textContent    = user.email || 'Local mode';
+    document.getElementById('sidebar-avatar').textContent   = av;
+  }
+
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebar-overlay').classList.toggle('active');
+  }
+  function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('active');
+  }
+  function handleLogout() {
+    localStorage.removeItem('dn_user');
+    window.location.href = 'index.html';
+  }
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+  }
+  </script>
+  <script src="theme.js"></script>
+</body>
+</html>

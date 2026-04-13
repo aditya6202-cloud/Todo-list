@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Daynest — Sign Up</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Lora:ital,wght@0,500;1,400&display=swap" rel="stylesheet"/>
+</head>
+<body>
+  <div class="auth-screen">
+    <div class="auth-bg-deco">
+      <div class="deco-circle c1"></div>
+      <div class="deco-circle c2"></div>
+    </div>
+    <div class="auth-card">
+      <button class="btn-back" onclick="window.location.href='index.html'">← Back</button>
+      <div class="auth-icon">✨</div>
+      <h2 class="auth-title">Create Account</h2>
+      <p class="auth-subtitle"><em>Join Daynest and start planning</em></p>
+
+      <label class="auth-label">Full Name</label>
+      <input type="text" id="signup-name" class="auth-input" placeholder="Your name"/>
+
+      <label class="auth-label">Email</label>
+      <input type="email" id="signup-email" class="auth-input" placeholder="you@email.com"/>
+
+      <label class="auth-label">Password</label>
+      <div class="password-wrap">
+        <input type="password" id="signup-password" class="auth-input" placeholder="Min 6 characters"/>
+        <button class="btn-eye" onclick="togglePass('signup-password', this)">👁</button>
+      </div>
+
+      <button class="btn-auth" id="signup-btn" onclick="handleSignup()">Create Account ✦</button>
+
+      <p class="auth-switch">Already have an account?
+        <span onclick="window.location.href='login.html'">Login</span>
+      </p>
+      <div id="signup-error" class="auth-error hidden"></div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+  <script>
+    async function handleSignup() {
+      const name     = document.getElementById('signup-name').value.trim();
+      const email    = document.getElementById('signup-email').value.trim();
+      const password = document.getElementById('signup-password').value;
+      const btn      = document.getElementById('signup-btn');
+
+      if (!name || !email || !password) { showError('Please fill in all fields ⚠️'); return; }
+      if (password.length < 6)          { showError('Password must be at least 6 characters'); return; }
+
+      btn.textContent = 'Creating account…';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch("http://localhost:5000/auth/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, password })
+        });
+        const data = await res.json();
+        
+        if (!res.ok) throw new Error(data.error || "Signup failed");
+
+        localStorage.setItem('dn_user', JSON.stringify({
+          id: data._id,
+          name: data.name,
+          email: data.email,
+          isGuest: false
+        }));
+        window.location.href = 'app.html';
+      } catch (e) {
+        showError(e.message || 'Signup failed.');
+        btn.textContent = 'Create Account ✦';
+        btn.disabled = false;
+      }
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('signup-error');
+      el.textContent = msg;
+      el.classList.remove('hidden');
+      setTimeout(() => el.classList.add('hidden'), 4000);
+    }
+
+    function togglePass(id, btn) {
+      const input = document.getElementById(id);
+      input.type = input.type === 'password' ? 'text' : 'password';
+      btn.textContent = input.type === 'password' ? '👁' : '🙈';
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') handleSignup();
+    });
+
+    let toastTimer;
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+    }
+  </script>
+</body>
+</html>

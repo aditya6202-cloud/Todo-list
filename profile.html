@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Daynest — My Profile</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Lora:ital,wght@0,500;1,400&display=swap" rel="stylesheet"/>
+  <style>
+    .profile-wrapper { max-width: 520px; margin: 0 auto; padding: 0 16px 80px; }
+
+    /* ── HERO ── */
+    .profile-hero {
+      background: linear-gradient(135deg, var(--amber), var(--amber-deep));
+      border-radius: var(--radius-xl);
+      padding: 36px 24px 28px;
+      text-align: center;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 28px rgba(232,168,76,0.4);
+      position: relative;
+      overflow: hidden;
+    }
+    .profile-hero::before {
+      content: '✦';
+      position: absolute; top: 14px; right: 20px;
+      font-size: 1.5rem; color: rgba(255,255,255,0.25);
+    }
+    .profile-avatar-big {
+      width: 88px; height: 88px;
+      background: rgba(255,255,255,0.28);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.6rem;
+      margin: 0 auto 8px;
+      border: 3px solid rgba(255,255,255,0.55);
+      cursor: pointer;
+      transition: transform 0.2s;
+      position: relative;
+    }
+    .profile-avatar-big:hover { transform: scale(1.06); }
+    .avatar-edit-badge {
+      position: absolute; bottom: 2px; right: 2px;
+      width: 24px; height: 24px;
+      background: white; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    .profile-avatar-hint { font-size: 0.7rem; color: rgba(255,255,255,0.65); margin-bottom: 10px; }
+    .profile-hero-name  { font-size: 1.4rem; font-weight: 900; color: white; }
+    .profile-hero-email { font-size: 0.82rem; color: rgba(255,255,255,0.8); font-weight: 600; margin-top: 4px; }
+    .member-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(255,255,255,0.2); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.72rem; font-weight: 800;
+      color: white; margin-top: 10px;
+    }
+
+    /* ── SECTIONS ── */
+    .profile-section {
+      background: var(--cream);
+      border-radius: var(--radius-lg);
+      padding: 20px 18px;
+      box-shadow: 0 4px 16px var(--shadow);
+      margin-bottom: 14px;
+    }
+    .section-title {
+      font-size: 0.78rem; font-weight: 800;
+      color: var(--text-soft); text-transform: uppercase;
+      letter-spacing: 0.8px; margin-bottom: 16px;
+    }
+
+    /* ── FIELDS ── */
+    .profile-field { margin-bottom: 14px; }
+    .profile-field label {
+      display: block; font-size: 0.75rem; font-weight: 800;
+      color: var(--text-mid); text-transform: uppercase;
+      letter-spacing: 0.6px; margin-bottom: 6px;
+    }
+    .profile-field input {
+      width: 100%; padding: 11px 14px;
+      background: var(--warm-bg);
+      border: 2px solid transparent;
+      border-radius: var(--radius-sm);
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.92rem; font-weight: 600;
+      color: var(--text-dark); outline: none;
+      transition: border-color 0.2s;
+      box-sizing: border-box;
+    }
+    .profile-field input:focus { border-color: var(--amber); }
+    .profile-field input:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .btn-save-profile {
+      width: 100%; padding: 13px;
+      background: var(--amber-deep); color: white;
+      border: none; border-radius: var(--radius-md);
+      font-family: 'Nunito', sans-serif;
+      font-size: 1rem; font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(200,121,58,0.35);
+      transition: all 0.2s;
+    }
+    .btn-save-profile:hover { background: var(--brown); transform: translateY(-2px); }
+
+    /* ── AVATAR PICKER ── */
+    .avatar-options { display: flex; gap: 10px; flex-wrap: wrap; }
+    .avatar-opt {
+      width: 44px; height: 44px;
+      background: var(--warm-bg); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; cursor: pointer;
+      border: 2px solid transparent; transition: all 0.2s;
+    }
+    .avatar-opt:hover, .avatar-opt.selected {
+      border-color: var(--amber);
+      background: rgba(232,168,76,0.15);
+      transform: scale(1.1);
+    }
+
+    /* ── STATS ── */
+    .stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+    .mini-stat {
+      background: var(--warm-bg); border-radius: var(--radius-md);
+      padding: 16px 10px; text-align: center;
+    }
+    .mini-stat-val   { font-size: 1.5rem; font-weight: 900; color: var(--amber-deep); }
+    .mini-stat-label { font-size: 0.68rem; font-weight: 700; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px; }
+
+    /* ── ACCOUNT ── */
+    .danger-btn {
+      width: 100%; padding: 12px;
+      background: rgba(232,98,74,0.08);
+      border: 1.5px solid rgba(232,98,74,0.25);
+      border-radius: var(--radius-md);
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.9rem; font-weight: 800;
+      color: var(--rust); cursor: pointer; transition: all 0.2s;
+    }
+    .danger-btn:hover { background: rgba(232,98,74,0.18); }
+  </style>
+</head>
+<body style="background: var(--warm-bg);">
+
+  <div id="sidebar-overlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-avatar" id="sidebar-avatar">👤</div>
+      <div class="sidebar-user-info">
+        <span class="sidebar-username" id="sidebar-username">Guest</span>
+        <span class="sidebar-email" id="sidebar-email">Local mode</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-link" onclick="window.location.href='app.html'"><span>📋</span> My Tasks</a>
+      <a class="sidebar-link" onclick="window.location.href='dashboard.html'"><span>📊</span> Dashboard</a>
+      <a class="sidebar-link" onclick="window.location.href='timer.html'"><span>⏱️</span> Pomodoro</a>
+      <a class="sidebar-link active"><span>👤</span> My Profile</a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" onclick="handleLogout()">🚪 Logout</button>
+    </div>
+  </aside>
+
+  <div class="profile-wrapper">
+    <header class="app-header">
+      <div class="header-left">
+        <button class="btn-hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+        <h2 class="app-logo">Daynest</h2>
+      </div>
+    </header>
+
+    <!-- HERO -->
+    <div class="profile-hero">
+      <div class="profile-avatar-big" id="profile-avatar-big" onclick="toggleAvatarPicker()">
+        <span id="avatar-text">👤</span>
+        <div class="avatar-edit-badge">✏️</div>
+      </div>
+      <div class="profile-avatar-hint">tap to change avatar</div>
+      <div class="profile-hero-name"  id="hero-name">Guest</div>
+      <div class="profile-hero-email" id="hero-email"></div>
+      <div class="member-badge">🐾 Daynest Member</div>
+    </div>
+
+    <!-- AVATAR PICKER -->
+    <div class="profile-section" id="avatar-picker" style="display:none;">
+      <div class="section-title">Choose Avatar</div>
+      <div class="avatar-options">
+        <div class="avatar-opt" onclick="selectAvatar('🐱')">🐱</div>
+        <div class="avatar-opt" onclick="selectAvatar('🦊')">🦊</div>
+        <div class="avatar-opt" onclick="selectAvatar('🐨')">🐨</div>
+        <div class="avatar-opt" onclick="selectAvatar('🐸')">🐸</div>
+        <div class="avatar-opt" onclick="selectAvatar('🦁')">🦁</div>
+        <div class="avatar-opt" onclick="selectAvatar('🐼')">🐼</div>
+        <div class="avatar-opt" onclick="selectAvatar('🦋')">🦋</div>
+        <div class="avatar-opt" onclick="selectAvatar('🌸')">🌸</div>
+        <div class="avatar-opt" onclick="selectAvatar('⭐')">⭐</div>
+        <div class="avatar-opt" onclick="selectAvatar('🌙')">🌙</div>
+        <div class="avatar-opt" onclick="selectAvatar('🌿')">🌿</div>
+        <div class="avatar-opt" onclick="selectAvatar('🍀')">🍀</div>
+      </div>
+    </div>
+
+    <!-- EDIT PROFILE -->
+    <div class="profile-section">
+      <div class="section-title">✏️ Edit Profile</div>
+      <div class="profile-field">
+        <label>Full Name</label>
+        <input type="text" id="edit-name" placeholder="Your name"/>
+      </div>
+      <div class="profile-field">
+        <label>Email</label>
+        <input type="email" id="edit-email" placeholder="your@email.com" disabled/>
+      </div>
+      <button class="btn-save-profile" onclick="saveProfile()">Save Changes ✦</button>
+    </div>
+
+    <!-- MY STATS -->
+    <div class="profile-section">
+      <div class="section-title">📊 My Stats</div>
+      <div class="stats-row">
+        <div class="mini-stat">
+          <div class="mini-stat-val" id="ps-total">0</div>
+          <div class="mini-stat-label">Total</div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-stat-val" id="ps-done">0</div>
+          <div class="mini-stat-label">Completed</div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-stat-val" id="ps-rate">0%</div>
+          <div class="mini-stat-label">Rate</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCOUNT -->
+    <div class="profile-section">
+      <div class="section-title">⚠️ Account</div>
+      <button class="danger-btn" onclick="handleLogout()">🚪 Logout from Daynest</button>
+    </div>
+
+  </div>
+
+  <div id="toast"></div>
+  <script>
+    let selectedAvatar = '👤';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      loadUserInfo();
+      await loadStats();
+    });
+
+    function loadUserInfo() {
+      const raw  = localStorage.getItem('dn_user');
+      const user = raw ? JSON.parse(raw) : { name: 'Guest', email: '', isGuest: true };
+
+      const savedAvatar = localStorage.getItem('dn_avatar');
+      const avatar = savedAvatar
+        ? savedAvatar
+        : (user.isGuest ? '👤' : (user.name || 'U').charAt(0).toUpperCase());
+
+      selectedAvatar = avatar;
+
+      // Set avatar via dedicated <span> so ✏️ badge inside the div stays intact
+      document.getElementById('avatar-text').textContent      = avatar;
+      document.getElementById('sidebar-avatar').textContent   = avatar;
+      document.getElementById('hero-name').textContent        = user.name  || 'Guest';
+      document.getElementById('hero-email').textContent       = user.email || '';
+      document.getElementById('sidebar-username').textContent = user.name  || 'Guest';
+      document.getElementById('sidebar-email').textContent    = user.email || 'Local mode';
+      document.getElementById('edit-name').value              = user.name  || '';
+      document.getElementById('edit-email').value             = user.email || '';
+    }
+
+    async function loadStats() {
+      let tasks = [];
+      try {
+        const userId = JSON.parse(localStorage.getItem('dn_user'))?.id || "guest";
+        const res = await fetch(`http://localhost:5000/tasks/${userId}`);
+        if (res.ok) {
+          tasks = await res.json();
+        } else {
+          throw new Error();
+        }
+      } catch (e) {
+        const c = localStorage.getItem('dn_tasks');
+        tasks = c ? JSON.parse(c) : [];
+      }
+      const done = tasks.filter(t => t.done).length;
+      const rate = tasks.length ? Math.round((done / tasks.length) * 100) : 0;
+      document.getElementById('ps-total').textContent = tasks.length;
+      document.getElementById('ps-done').textContent  = done;
+      document.getElementById('ps-rate').textContent  = rate + '%';
+    }
+
+    async function saveProfile() {
+      const name = document.getElementById('edit-name').value.trim();
+      if (!name) { showToast('Please enter your name ⚠️'); return; }
+
+      const raw  = localStorage.getItem('dn_user');
+      const user = raw ? JSON.parse(raw) : {};
+      user.name  = name;
+      localStorage.setItem('dn_user', JSON.stringify(user));
+      localStorage.setItem('dn_avatar', selectedAvatar);
+
+      document.getElementById('hero-name').textContent        = name;
+      document.getElementById('sidebar-username').textContent = name;
+      document.getElementById('avatar-text').textContent      = selectedAvatar;
+      document.getElementById('sidebar-avatar').textContent   = selectedAvatar;
+      showToast('Profile saved! ✨');
+    }
+
+    function toggleAvatarPicker() {
+      const picker = document.getElementById('avatar-picker');
+      picker.style.display = picker.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function selectAvatar(emoji) {
+      selectedAvatar = emoji;
+      document.getElementById('avatar-text').textContent = emoji;
+      document.querySelectorAll('.avatar-opt').forEach(el => {
+        el.classList.toggle('selected', el.textContent.trim() === emoji);
+      });
+      document.getElementById('avatar-picker').style.display = 'none';
+      showToast('Avatar updated! ' + emoji);
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebar-overlay').classList.toggle('active');
+    }
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebar-overlay').classList.remove('active');
+    }
+    function handleLogout() {
+      localStorage.removeItem('dn_user');
+      window.location.href = 'index.html';
+    }
+    let toastTimer;
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+    }
+  </script>
+  <script src="theme.js"></script>
+</body>
+</html>
