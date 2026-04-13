@@ -439,7 +439,7 @@
       const card = document.createElement('div');
       card.className = 'habit-card';
       card.dataset.habitId = habit.id;
-      list.appendChild(card);   // temp attach so renderHabitCard can find it
+      document.getElementById('habits-list').appendChild(card);   // temp attach so renderHabitCard can find it
       renderHabitCard(habit.id, card);
       return card;
     }
